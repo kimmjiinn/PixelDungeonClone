@@ -96,6 +96,14 @@ HRESULT AstarScene::Init()
 	destTile->SetColor(RGB(0, 0, 255));
 	destTile->SetType(AstarTileType::End);
 
+	//
+	trc = GetRect(0, 0, 20, 20);
+	isTarget = false;
+	prevTargetPos = { 0, 0 };
+	currTargetPos = { 0, 0 };
+	speed = 1;
+	changeColor = 50;
+
 	return S_OK;
 }
 
@@ -105,6 +113,28 @@ void AstarScene::Release()
 
 void AstarScene::Update()
 {
+	if (PtInRect(&trc, g_ptMouse))		// 타겟 사각형
+	{
+		if (KeyManager::GetInstance()->IsStayKeyDown(VK_LBUTTON))
+		{
+			int tempX = currTargetPos.x;
+			int tempY = currTargetPos.y;
+
+			float posX = g_ptMouse.x;
+			float posY = g_ptMouse.y;
+
+			UpdateRect(trc, { posX, posY });
+
+			currTargetPos.x = posX / ASTAR_TILE_SIZE;
+			currTargetPos.y = posY / ASTAR_TILE_SIZE;
+			map[tempY][tempX].SetType(AstarTileType::None);
+			map[tempY][tempX].SetColor(RGB(100, 100, 100));
+		}
+
+		map[currTargetPos.y][currTargetPos.x].SetType(AstarTileType::Target);
+		map[currTargetPos.y][currTargetPos.x].SetColor(RGB(200, 200, 0));
+	}
+
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
 	{
 		// g_ptMouse로 인덱스를 계산
@@ -124,11 +154,42 @@ void AstarScene::Update()
 		}
 	}
 
-
 	// TODO 
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SPACE))
 	{
 		FindPath();
+	}
+
+	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))
+	{
+		if (pathList.top()->parentTile == startTile)
+		{
+			for (int i = 0; i < speed - 1; i++)
+			{
+				pathList.pop();
+			}
+			pathList.top()->SetColor(RGB(255, 255, 255));
+			for (int i = 0; i < speed; i++)
+			{
+				if (pathList.size() == 1) continue;
+				pathList.pop();
+			}
+		}
+		else if (pathList.top() == destTile)
+		{
+			pathList.top()->SetColor(RGB(255 - changeColor, 255 - changeColor, 255 - changeColor));
+			changeColor -= 10;
+		}
+		else
+		{
+			pathList.top()->SetColor(RGB(255, 255, 255));
+
+			for (int i = 0; i < speed; i++)
+			{
+				if (pathList.size() == 1) continue;
+				pathList.pop();
+			}
+		}
 	}
 }
 
@@ -141,6 +202,7 @@ void AstarScene::Render(HDC hdc)
 			map[i][j].Render(hdc);
 		}
 	}
+	Rectangle(hdc, trc.left, trc.top, trc.right, trc.bottom);
 }
 
 void AstarScene::FindPath()
@@ -158,8 +220,20 @@ void AstarScene::FindPath()
 
 		}
 
+		if (!isTarget)
+		{
+			LookAround(currTile);
+		}
+		if (isTarget)
+		{
+			if ((prevTargetPos.x != currTargetPos.x) || (prevTargetPos.y != currTargetPos.y))
+			{
+				SetTarget(currTargetPos.x, currTargetPos.y);
+				prevTargetPos = currTargetPos;
+			}
+		}
 
-		FindPath();
+			FindPath();
 
 
 		if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))
@@ -241,6 +315,7 @@ void AstarScene::PrintPath()
 	AstarTile* curr = destTile;
 	while (curr != nullptr && curr != startTile)
 	{
+		pathList.push(curr);
 		curr->SetColor(RGB(0, 0, 0));
 		curr = curr->parentTile;
 	}
@@ -250,4 +325,71 @@ bool AstarScene::isValidNeighbor(AstarTile* neighbor)
 {
 	bool isNotClose = find(closeList.begin(), closeList.end(), neighbor) == closeList.end();
 	return neighbor->GetType() != AstarTileType::Wall && isNotClose;
+}
+
+void AstarScene::SetTarget(int x, int y)
+{
+	if (destTile)
+	{
+		map[destTile->idY][destTile->idX].SetType(AstarTileType::None);
+		map[destTile->idY][destTile->idX].SetColor(RGB(100, 100, 100));
+		destTile = nullptr;
+	}
+
+	if (0 <= x && x < ASTAR_TILE_COUNT &&
+		0 <= y && y < ASTAR_TILE_COUNT)
+	{
+		if (map[y][x].GetType() != AstarTileType::Start && map[y][x].GetType() != AstarTileType::Wall)	//타겟지점이 도착지점
+		{
+			destTile = &map[y][x];
+			destTile->SetColor(RGB(0, 0, 255));
+			destTile->SetType(AstarTileType::End);
+		}
+	}
+
+	if (startTile)
+	{
+		map[startTile->idY][startTile->idX].SetType(AstarTileType::None);
+		map[startTile->idY][startTile->idX].SetColor(RGB(100, 100, 100));
+		startTile = nullptr;
+	}
+
+	if (currTile->GetType() != AstarTileType::End && currTile->GetType() != AstarTileType::Wall)
+	{
+		startTile = currTile;
+		startTile->SetColor(RGB(255, 0, 0));
+		startTile->SetType(AstarTileType::Start);
+	}
+
+	if (!closeList.empty())
+	{
+		closeList.clear();
+	}
+	if (!openList.empty())
+	{
+		openList.clear();
+	}
+}
+
+void AstarScene::LookAround(AstarTile* currTile)		// 각 방향으로 1타일까지 탐색
+{
+	static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
+	static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
+
+	for (int i = 0; i < 8; i++)
+	{
+		int nx = currTile->idX + dx[i];
+		int ny = currTile->idY + dy[i];
+
+		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
+			ny < 0 || ny >= ASTAR_TILE_COUNT)
+			continue;
+
+		if (map[ny][nx].GetType() == AstarTileType::Target)
+		{
+			isTarget = true;
+			SetTarget(nx, ny);
+			break;
+		}
+	}
 }

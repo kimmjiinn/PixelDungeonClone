@@ -1,11 +1,12 @@
 ﻿#pragma once
 #include "GameObject.h"
 #include "config.h"
+#include <stack>
 
 #define ASTAR_TILE_SIZE		30
 #define ASTAR_TILE_COUNT	20
 
-enum class AstarTileType { Start, End, Wall, None };
+enum class AstarTileType { Start, End, Wall, None, Target };
 
 class AstarTile : public GameObject
 {
@@ -61,6 +62,15 @@ class AstarScene : public GameObject
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 
+	//
+	stack<AstarTile*> pathList;
+	POINT prevTargetPos;
+	POINT currTargetPos;
+	RECT trc;
+	bool isTarget;
+	int changeColor;
+	int speed;
+
 public:
 	virtual HRESULT Init();
 	virtual void Release();
@@ -76,6 +86,9 @@ public:
 	void PrintPath();
 	bool isValidNeighbor(AstarTile* neighbor);
 
+	//
+	void SetTarget(int x, int y);
+	void LookAround(AstarTile* currTile);
 	virtual ~AstarScene() {};
 };
 
