@@ -1,6 +1,4 @@
 #include "AstarScene.h"
-#include "CommonFunction.h"
-#include "algorithm"
 
 HRESULT AstarTile::Init()
 {
@@ -60,27 +58,11 @@ void AstarTile::SetColor(COLORREF color)
 	hBrush = CreateSolidBrush(color);
 }
 
-void AstarTile::SetCost(const AstarTile* startTile, const AstarTile* destTile)
-{
-	if (parentTile)
-	{
-		costFromStart = parentTile->costFromStart + GetDistance({ (float)idX, (float)idY }, { (float)parentTile->idX, (float)parentTile->idY });
-	}
-	else
-	{
-		costFromStart = GetDistance({ (float)idX, (float)idY }, { (float)startTile->idX, (float)startTile->idY });
-	}
-
-	costToGoal = GetDistance({ (float)idX, (float)idY }, { (float)destTile->idX, (float)destTile->idY });
-
-	totalCost = costFromStart + costToGoal;
-}
-
 HRESULT AstarScene::Init()
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// 세로반복 (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// 가로반복 (x)
 		{
 			map[i][j].Init(j, i);
 		}
@@ -92,15 +74,50 @@ HRESULT AstarScene::Init()
 
 	currTile = startTile;
 
-	destTile = &(map[10][19]);
-	destTile->SetColor(RGB(0, 0, 255));
-	destTile->SetType(AstarTileType::End);
+
 
 	return S_OK;
 }
 
 void AstarScene::Release()
 {
+	//if (startTile)
+	//{
+	//	startTile->Release();
+	//	delete startTile;
+	//	startTile = nullptr;
+	//}
+	//if (destTile)
+	//{
+	//	destTile->Release();
+	//	delete destTile;
+	//	destTile = nullptr;
+	//}
+	//if (currTile)
+	//{
+	//	currTile->Release();
+	//	delete currTile;
+	//	currTile = nullptr;
+	//}
+
+	//for (auto tile : openList)
+	//{
+	//	if (tile)
+	//	{
+	//		tile->Release();
+	//		delete tile;
+	//	}
+	//}
+	//openList.clear();
+	//for (auto tile : closeList)
+	//{
+	//	if (tile)
+	//	{
+	//		tile->Release();
+	//		delete tile;
+	//	}
+	//}
+	//closeList.clear();
 }
 
 void AstarScene::Update()
@@ -115,6 +132,7 @@ void AstarScene::Update()
 		if (0 <= x && x < ASTAR_TILE_COUNT &&
 			0 <= y && y < ASTAR_TILE_COUNT)
 		{
+			// 시작이나 목적지가 아닐 때
 			if (map[y][x].GetType() != AstarTileType::Start &&
 				map[y][x].GetType() != AstarTileType::End)
 			{
@@ -123,131 +141,164 @@ void AstarScene::Update()
 			}
 		}
 	}
-
-
-	// TODO 
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SPACE))
 	{
 		FindPath();
 	}
+	if (KeyManager::GetInstance()->IsOnceKeyDown('P'))
+		PrintPath();
+	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
+	{
+		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
+		int idy = g_ptMouse.y / ASTAR_TILE_SIZE;
+		destTile = &(map[idy][idx]);
+		destTile->SetColor(RGB(0, 0, 255));
+		destTile->SetType(AstarTileType::End);
+		return;
+	}
+
+	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
+	{
+		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
+	}
+	// TODO 
 }
 
 void AstarScene::Render(HDC hdc)
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// 세로반복 (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// 가로반복 (x)
 		{
 			map[i][j].Render(hdc);
 		}
 	}
 }
 
+FPOINT front[] =
+{
+	FPOINT{-1, 0}, //UP
+	FPOINT{0, -1}, //LEFT
+	FPOINT{1, 0}, //DOWN
+	FPOINT{0, 1},	//RIGHT
+	FPOINT{-1, -1}, //LEFT-UP
+	FPOINT{1, -1},	//LEFT-DOWN
+	FPOINT{1, 1},	//RIGHT-DOWN
+	FPOINT{-1, 1},	//RIGHT-UP
+};
+int cost[] =
+{
+	10,
+	10,
+	10,
+	10,
+	14,
+	14,
+	14,
+	14
+};
+
 void AstarScene::FindPath()
 {
+	if (!destTile)
+		return;
 	if (currTile)
 	{
-		AddOpenList(currTile);
-		currTile = GetLowestCostTile();
-		closeList.push_back(currTile);
-
 		if (currTile == destTile)
-		{
-			PrintPath();
 			return;
+		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
+		AddOpenList(currTile);
 
-		}
+		// 후보들 중 F값이 가장 작은 타일을 다음 currTile 선정
+		if (openList.empty())
+			return;
+		sort(openList.begin(), openList.end(), [](AstarTile* t1, AstarTile* t2) {
+			return t1->totalCost > t2->totalCost;
+			});
+		AstarTile* nextTile = openList.back();
+		openList.pop_back();
 
-
+		currTile = nextTile;
+		// 반복
 		FindPath();
-
-
-		if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))
-		{
-			SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
-		}
 	}
 }
 
 void AstarScene::AddOpenList(AstarTile* currTile)
 {
-	static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
-	static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
-
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; ++i)
 	{
-		int nx = currTile->idX + dx[i];
-		int ny = currTile->idY + dy[i];
-		float moveCost = (abs(dx[i]) + abs(dy[i]) == 2) ? 1.4142f : 1.0f;
+		int nextX = currTile->idX + front[i].x;
+		int nextY = currTile->idY + front[i].y;
 
-		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
-			ny < 0 || ny >= ASTAR_TILE_COUNT)
+		if (nextX < 0 || nextX >= ASTAR_TILE_COUNT)
+			return;
+		if (nextY < 0 || nextY >= ASTAR_TILE_COUNT)
+			return;
+
+		AstarTile* nextTile = &map[nextY][nextX];
+
+		if (!CanGo(nextTile))
 			continue;
 
-		AstarTile* neighbor = &map[ny][nx];
+		auto it1 = find(closeList.begin(), closeList.end(), nextTile);
+		if (it1 != closeList.end())
+			continue;
 
-		if (!isValidNeighbor(neighbor)) continue;
+		int g = currTile->costFromStart + cost[i];
+		int h = 10 * sqrt((destTile->idX - nextTile->idX) * (destTile->idX - nextTile->idX)
+				+ (destTile->idY - nextTile->idY) * (destTile->idY - nextTile->idY));
 
-		// 대각선 이동 시 인접 벽 검사
-		if (abs(dx[i]) + abs(dy[i]) == 2) {
-			bool wallX = map[currTile->idY][nx].GetType() == AstarTileType::Wall;
-			bool wallY = map[ny][currTile->idX].GetType() == AstarTileType::Wall;
-			if (wallX || wallY) continue;
-		}
-		// 이동 비용 확인 및 갱신 여부 확인
-		UpdateNeighborCosts(neighbor, currTile, moveCost);
-	}
-
-}
-
-void AstarScene::UpdateNeighborCosts(AstarTile* neighbor, AstarTile* current, float moveCost)
-{
-	float newG = current->costFromStart + moveCost;
-	bool inOpen = find(openList.begin(), openList.end(), neighbor) != openList.end();
-
-	if (inOpen == false || newG < neighbor->costFromStart)
-	{
-		neighbor->costFromStart = newG;
-		neighbor->costToGoal = Heuristic(neighbor, destTile);
-		neighbor->totalCost = neighbor->costFromStart + neighbor->costToGoal;
-		neighbor->parentTile = current;
-
-		if (!inOpen)
+		auto it2 = find(openList.begin(), openList.end(), nextTile);
+		if (it2 != openList.end())
 		{
-			neighbor->SetColor(RGB(255, 0, 255));
-			openList.push_back(neighbor);
+			if ((*it2)->costFromStart > g)
+			{
+				(*it2)->costFromStart = g;
+				(*it2)->totalCost = (*it2)->costFromStart + h;
+				(*it2)->SetParent(currTile);
+			}
 		}
+		else			
+		{
+			nextTile->costFromStart = g;
+			nextTile->costToGoal = h;
+			nextTile->totalCost = g + h;
+			nextTile->SetParent(currTile);
+			nextTile->SetColor(RGB(128, 128, 128));
+			openList.push_back(nextTile);
+		}
+		closeList.push_back(currTile);
 	}
-}
-
-float AstarScene::Heuristic(AstarTile* a, AstarTile* b) {
-	int dx = abs(a->idX - b->idX);
-	int dy = abs(a->idY - b->idY);
-	return max(dx, dy) + (1.4142f - 1) * min(dx, dy);
-}
-AstarTile* AstarScene::GetLowestCostTile()
-{
-	auto iter = min_element(openList.begin(), openList.end(), [](AstarTile* a, AstarTile* b) {
-		return a->totalCost < b->totalCost;
-		});
-
-	AstarTile* tile = *iter;
-	openList.erase(iter);
-	return tile;
 }
 
 void AstarScene::PrintPath()
 {
 	AstarTile* curr = destTile;
+	path.clear();
 	while (curr != nullptr && curr != startTile)
 	{
 		curr->SetColor(RGB(0, 0, 0));
+		path.push_back({ curr->center.x, curr->center.y });
+		if (!curr->parentTile)
+			return;
 		curr = curr->parentTile;
 	}
+	reverse(path.begin(), path.end());
 }
 
-bool AstarScene::isValidNeighbor(AstarTile* neighbor)
+bool AstarScene::CanGo(AstarTile* nextTile)
 {
-	bool isNotClose = find(closeList.begin(), closeList.end(), neighbor) == closeList.end();
-	return neighbor->GetType() != AstarTileType::Wall && isNotClose;
+	//타일타입이 벽이면 false
+	if (nextTile->GetType() == AstarTileType::Wall)
+		return false;
+	//주변 벽이면 대각이동 X
+	int dx = nextTile->idX - currTile->idX;
+	int dy = nextTile->idY - currTile->idY;
+
+	if (map[currTile->idY + dy][currTile->idX].type == AstarTileType::Wall
+		&& map[currTile->idY][currTile->idX + dx].type == AstarTileType::Wall)
+		return false;
+	return true;
 }
+
