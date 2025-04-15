@@ -1,4 +1,5 @@
 #include "AstarScene.h"
+#include "Player.h"
 
 HRESULT AstarTile::Init()
 {
@@ -74,7 +75,8 @@ HRESULT AstarScene::Init()
 
 	currTile = startTile;
 
-
+	player = new Player({startTile->center.x, startTile->center.y});
+	player->Init();
 
 	return S_OK;
 }
@@ -118,6 +120,7 @@ void AstarScene::Release()
 	//	}
 	//}
 	//closeList.clear();
+	SAFE_DELETE(player);
 }
 
 void AstarScene::Update()
@@ -141,12 +144,7 @@ void AstarScene::Update()
 			}
 		}
 	}
-	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SPACE))
-	{
-		FindPath();
-	}
-	if (KeyManager::GetInstance()->IsOnceKeyDown('P'))
-		PrintPath();
+
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
 	{
 		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
@@ -154,12 +152,52 @@ void AstarScene::Update()
 		destTile = &(map[idy][idx]);
 		destTile->SetColor(RGB(0, 0, 255));
 		destTile->SetType(AstarTileType::End);
+
+		openList.clear();
+		closeList.clear();
+		path.clear();
+		pathIdx = 0;
+		startTile = currTile;
+		FindPath();
+
+		PrintPath();
+		moving = true;
+		
+	}
+	if (moving)
+	{
+		if (pathIdx >= path.size())
+		{
+			moving = false;
+			return;
+		}
+
+		float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
+		currTime += deltaTime;
+		if (currTime >= 0.1f)
+		{
+			currTile->SetColor(RGB(255, 0, 255));
+			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
+			currTile->SetColor(RGB(255, 0, 0));
+			currTime = 0;
+			pathIdx++;
+		}
+	}
+		
+
+	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SPACE))
+	{
+		
 		return;
 	}
 
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
 	{
 		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
+	}
+	if (player)
+	{
+		player->SetPos(currTile->center);
 	}
 	// TODO 
 }
@@ -173,6 +211,8 @@ void AstarScene::Render(HDC hdc)
 			map[i][j].Render(hdc);
 		}
 	}
+	if (player)
+		player->Render(hdc);
 }
 
 FPOINT front[] =
@@ -205,7 +245,10 @@ void AstarScene::FindPath()
 	if (currTile)
 	{
 		if (currTile == destTile)
+		{
+			currTile = startTile;
 			return;
+		}
 		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
 		AddOpenList(currTile);
 
@@ -276,14 +319,16 @@ void AstarScene::PrintPath()
 {
 	AstarTile* curr = destTile;
 	path.clear();
+	path.push_back({ curr->center.x, curr->center.y });
 	while (curr != nullptr && curr != startTile)
 	{
-		curr->SetColor(RGB(0, 0, 0));
-		path.push_back({ curr->center.x, curr->center.y });
 		if (!curr->parentTile)
 			return;
+		curr->SetColor(RGB(0, 0, 0));
 		curr = curr->parentTile;
+		path.push_back({ curr->center.x, curr->center.y });
 	}
+	path.pop_back();
 	reverse(path.begin(), path.end());
 }
 

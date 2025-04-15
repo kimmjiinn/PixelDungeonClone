@@ -68,6 +68,7 @@ private:
 
 };
 
+class Player;
 class AstarScene : public GameObject
 {
 public:
@@ -83,9 +84,10 @@ public:
 	void PrintPath();
 	bool CanGo(AstarTile* nextTile);
 
-	//float deltaTime;
+	float currTime = 1.f;
 	vector<POINT> path;
 	int pathIdx = 0;
+	bool moving = false;
 public:
 	// 이차원 배열 맵을 구성
 	AstarTile map[ASTAR_TILE_COUNT][ASTAR_TILE_COUNT];
@@ -98,5 +100,7 @@ public:
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 
+private:
+	Player* player;
 };
 

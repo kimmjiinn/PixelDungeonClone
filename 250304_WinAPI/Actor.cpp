@@ -10,17 +10,21 @@ Actor::~Actor()
 
 HRESULT Actor::Init()
 {
-    return E_NOTIMPL;
+	Super::Init();
+	return E_NOTIMPL;
 }
 
 void Actor::Release()
 {
+	Super::Release();
 }
 
 void Actor::Update()
 {
+	Super::Update();
 }
 
 void Actor::Render(HDC hdc)
 {
+	Super::Render(hdc);
 }

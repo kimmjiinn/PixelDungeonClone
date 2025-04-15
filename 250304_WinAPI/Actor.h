@@ -1,16 +1,18 @@
 #pragma once
 #include "GameObject.h"
+#include "config.h"
+
+enum class ActState
+{
+	IDLE,
+	MOVE,
+	ATTACK,
+	ActStateLength
+};
 class Image;
 class Actor : public GameObject
 {
 public:
-	enum class ActState
-	{
-		IDLE,
-		MOVE,
-		ATTACK,
-		ActStateLength
-	};
 	struct StatInfo 
 	{
 		int hp;
@@ -30,10 +32,12 @@ public:
 	virtual void Update();
 	virtual void Render(HDC hdc);
 
-private:
+protected:
 	StatInfo Info;
-	FPOINT pos;
+	POINT pos;
 	POINT size;
-	Image* image;
+	int currAnimFrame;
+	float currTick;
+	Image* currImage;
 };
 

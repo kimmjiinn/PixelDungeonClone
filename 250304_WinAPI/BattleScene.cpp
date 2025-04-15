@@ -1,7 +1,6 @@
 #include "BattleScene.h"
 #include "Image.h"
 #include "CommonFunction.h"
-#include "config.h"
 
 HRESULT BattleScene::Init()
 {
@@ -27,12 +26,13 @@ HRESULT BattleScene::Init()
 
 void BattleScene::Release()
 {
-	if (backGround)
-	{
-		backGround->Release();
-		delete backGround;
-		backGround = nullptr;
-	}
+	//if (backGround)
+	//{
+	//	backGround->Release();
+	//	delete backGround;
+	//	backGround = nullptr;
+	//}
+	SAFE_DELETE(backGround);
 }
 
 void BattleScene::Update()
