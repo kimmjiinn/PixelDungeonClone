@@ -232,9 +232,9 @@ void AstarScene::AddOpenList(AstarTile* currTile)
 		int nextY = currTile->idY + front[i].y;
 
 		if (nextX < 0 || nextX >= ASTAR_TILE_COUNT)
-			return;
+			continue;
 		if (nextY < 0 || nextY >= ASTAR_TILE_COUNT)
-			return;
+			continue;
 
 		AstarTile* nextTile = &map[nextY][nextX];
 
