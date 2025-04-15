@@ -33,7 +33,7 @@ void Player::Update()
 
 	currTick += deltaTime;
 
-	if (currTick > 1.0f)
+	if (currTick > 0.1f)
 	{
 		currTick = 0;
 		currAnimFrame++;

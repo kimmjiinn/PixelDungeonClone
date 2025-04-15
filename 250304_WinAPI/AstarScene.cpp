@@ -150,20 +150,20 @@ void AstarScene::Update()
 		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
 		int idy = g_ptMouse.y / ASTAR_TILE_SIZE;
 		destTile = &(map[idy][idx]);
-		destTile->SetColor(RGB(0, 0, 255));
+		//destTile->SetColor(RGB(0, 0, 255));
 		destTile->SetType(AstarTileType::End);
 
-		openList.clear();
-		closeList.clear();
-		path.clear();
-		pathIdx = 0;
-		startTile = currTile;
-		FindPath();
-
-		PrintPath();
 		moving = true;
-		
 	}
+
+	openList.clear();
+	closeList.clear();
+	path.clear();
+	pathIdx = 0;
+	startTile = currTile;
+	FindPath();
+
+	PrintPath();
 	if (moving)
 	{
 		if (pathIdx >= path.size())
@@ -176,21 +176,13 @@ void AstarScene::Update()
 		currTime += deltaTime;
 		if (currTime >= 0.1f)
 		{
-			currTile->SetColor(RGB(255, 0, 255));
+			//currTile->SetColor(RGB(255, 0, 255));
 			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
-			currTile->SetColor(RGB(255, 0, 0));
+			//currTile->SetColor(RGB(255, 0, 0));
 			currTime = 0;
 			pathIdx++;
 		}
 	}
-		
-
-	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SPACE))
-	{
-		
-		return;
-	}
-
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
 	{
 		SceneManager::GetInstance()->ChangeScene("ÀüÅõ¾À_1", "·Îµù_1");
@@ -198,6 +190,7 @@ void AstarScene::Update()
 	if (player)
 	{
 		player->SetPos(currTile->center);
+		player->Update();
 	}
 	// TODO 
 }
@@ -308,7 +301,7 @@ void AstarScene::AddOpenList(AstarTile* currTile)
 			nextTile->costToGoal = h;
 			nextTile->totalCost = g + h;
 			nextTile->SetParent(currTile);
-			nextTile->SetColor(RGB(128, 128, 128));
+			//nextTile->SetColor(RGB(128, 128, 128));
 			openList.push_back(nextTile);
 		}
 		closeList.push_back(currTile);
@@ -317,6 +310,8 @@ void AstarScene::AddOpenList(AstarTile* currTile)
 
 void AstarScene::PrintPath()
 {
+	if (!destTile)
+		return;
 	AstarTile* curr = destTile;
 	path.clear();
 	path.push_back({ curr->center.x, curr->center.y });
@@ -324,7 +319,7 @@ void AstarScene::PrintPath()
 	{
 		if (!curr->parentTile)
 			return;
-		curr->SetColor(RGB(0, 0, 0));
+		//curr->SetColor(RGB(0, 0, 0));
 		curr = curr->parentTile;
 		path.push_back({ curr->center.x, curr->center.y });
 	}
