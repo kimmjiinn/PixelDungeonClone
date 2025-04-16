@@ -61,9 +61,9 @@ void AstarTile::SetColor(COLORREF color)
 
 HRESULT AstarScene::Init()
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ºº∑Œπ›∫π (y)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ÏÑ∏Î°úÎ∞òÎ≥µ (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// ∞°∑Œπ›∫π (x)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// Í∞ÄÎ°úÎ∞òÎ≥µ (x)
 		{
 			map[i][j].Init(j, i);
 		}
@@ -77,6 +77,14 @@ HRESULT AstarScene::Init()
 
 	player = new Player({startTile->center.x, startTile->center.y});
 	player->Init();
+
+	//
+	trc = GetRect(0, 0, 20, 20);
+	isTarget = false;
+	prevTargetPos = { 0, 0 };
+	currTargetPos = { 0, 0 };
+	speed = 1;
+	changeColor = 50;
 
 	return S_OK;
 }
@@ -125,9 +133,31 @@ void AstarScene::Release()
 
 void AstarScene::Update()
 {
+	if (PtInRect(&trc, g_ptMouse))		// ÌÉÄÍ≤ü ÏÇ¨Í∞ÅÌòï
+	{
+		if (KeyManager::GetInstance()->IsStayKeyDown(VK_LBUTTON))
+		{
+			int tempX = currTargetPos.x;
+			int tempY = currTargetPos.y;
+
+			float posX = g_ptMouse.x;
+			float posY = g_ptMouse.y;
+
+			UpdateRect(trc, { posX, posY });
+
+			currTargetPos.x = posX / ASTAR_TILE_SIZE;
+			currTargetPos.y = posY / ASTAR_TILE_SIZE;
+			map[tempY][tempX].SetType(AstarTileType::None);
+			map[tempY][tempX].SetColor(RGB(100, 100, 100));
+		}
+
+		map[currTargetPos.y][currTargetPos.x].SetType(AstarTileType::Target);
+		map[currTargetPos.y][currTargetPos.x].SetColor(RGB(200, 200, 0));
+	}
+
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
 	{
-		// g_ptMouse∑Œ ¿Œµ¶Ω∫∏¶ ∞ËªÍ
+		// g_ptMouseÎ°ú Ïù∏Îç±Ïä§Î•º Í≥ÑÏÇ∞
 		int x, y;
 		x = g_ptMouse.x / ASTAR_TILE_SIZE;
 		y = g_ptMouse.y / ASTAR_TILE_SIZE;
@@ -135,7 +165,7 @@ void AstarScene::Update()
 		if (0 <= x && x < ASTAR_TILE_COUNT &&
 			0 <= y && y < ASTAR_TILE_COUNT)
 		{
-			// Ω√¿€¿Ã≥™ ∏Ò¿˚¡ˆ∞° æ∆¥“ ∂ß
+			// ÏãúÏûëÏù¥ÎÇò Î™©Ï†ÅÏßÄÍ∞Ä ÏïÑÎãê Îïå
 			if (map[y][x].GetType() != AstarTileType::Start &&
 				map[y][x].GetType() != AstarTileType::End)
 			{
@@ -144,6 +174,7 @@ void AstarScene::Update()
 			}
 		}
 	}
+
 
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
 	{
@@ -185,25 +216,25 @@ void AstarScene::Update()
 	}
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
 	{
-		SceneManager::GetInstance()->ChangeScene("¿¸≈ıæ¿_1", "∑Œµ˘_1");
+		SceneManager::GetInstance()->ChangeScene("Ï†ÑÌà¨Ïî¨_1", "Î°úÎî©_1");
 	}
 	if (player)
 	{
 		player->SetPos(currTile->center);
 		player->Update();
 	}
-	// TODO 
 }
 
 void AstarScene::Render(HDC hdc)
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ºº∑Œπ›∫π (y)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ÏÑ∏Î°úÎ∞òÎ≥µ (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// ∞°∑Œπ›∫π (x)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// Í∞ÄÎ°úÎ∞òÎ≥µ (x)
 		{
 			map[i][j].Render(hdc);
 		}
 	}
+  
 	if (player)
 		player->Render(hdc);
 }
@@ -242,10 +273,11 @@ void AstarScene::FindPath()
 			currTile = startTile;
 			return;
 		}
-		// ¡÷¿ßø° ¿÷¥¬ ¿Ãµø∞°¥…«— ≈∏¿œµÈ¿ª F∞™ ∞ËªÍ »ƒ∫∏ø° ≥÷¥¬¥Ÿ.
+		// Ï£ºÏúÑÏóê ÏûàÎäî Ïù¥ÎèôÍ∞ÄÎä•Ìïú ÌÉÄÏùºÎì§ÏùÑ FÍ∞í Í≥ÑÏÇ∞ ÌõÑÎ≥¥Ïóê ÎÑ£ÎäîÎã§.
 		AddOpenList(currTile);
 
-		// »ƒ∫∏µÈ ¡ﬂ F∞™¿Ã ∞°¿Â ¿€¿∫ ≈∏¿œ¿ª ¥Ÿ¿Ω currTile º±¡§
+
+		// ÌõÑÎ≥¥Îì§ Ï§ë FÍ∞íÏù¥ Í∞ÄÏû• ÏûëÏùÄ ÌÉÄÏùºÏùÑ Îã§Ïùå currTile ÏÑ†Ï†ï
 		if (openList.empty())
 			return;
 		sort(openList.begin(), openList.end(), [](AstarTile* t1, AstarTile* t2) {
@@ -255,8 +287,9 @@ void AstarScene::FindPath()
 		openList.pop_back();
 
 		currTile = nextTile;
-		// π›∫π
+		// Î∞òÎ≥µ
 		FindPath();
+
 	}
 }
 
@@ -317,6 +350,7 @@ void AstarScene::PrintPath()
 	path.push_back({ curr->center.x, curr->center.y });
 	while (curr != nullptr && curr != startTile)
 	{
+
 		if (!curr->parentTile)
 			return;
 		//curr->SetColor(RGB(0, 0, 0));
@@ -329,10 +363,10 @@ void AstarScene::PrintPath()
 
 bool AstarScene::CanGo(AstarTile* nextTile)
 {
-	//≈∏¿œ≈∏¿‘¿Ã ∫Æ¿Ã∏È false
+	//ÌÉÄÏùºÌÉÄÏûÖÏù¥ Î≤ΩÏù¥Î©¥ false
 	if (nextTile->GetType() == AstarTileType::Wall)
 		return false;
-	//¡÷∫Ø ∫Æ¿Ã∏È ¥Î∞¢¿Ãµø X
+	//Ï£ºÎ≥Ä Î≤ΩÏù¥Î©¥ ÎåÄÍ∞ÅÏù¥Îèô X
 	int dx = nextTile->idX - currTile->idX;
 	int dy = nextTile->idY - currTile->idY;
 
@@ -341,4 +375,3 @@ bool AstarScene::CanGo(AstarTile* nextTile)
 		return false;
 	return true;
 }
-
