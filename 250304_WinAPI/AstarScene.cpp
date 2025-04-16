@@ -174,7 +174,7 @@ void AstarScene::Update()
 
 		float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
 		currTime += deltaTime;
-		if (currTime >= 0.1f)
+		if (currTime >= 0.5f)
 		{
 			//currTile->SetColor(RGB(255, 0, 255));
 			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
