@@ -1,4 +1,4 @@
-#include "AstarScene.h"
+﻿#include "AstarScene.h"
 #include "Player.h"
 
 HRESULT AstarTile::Init()
@@ -78,14 +78,6 @@ HRESULT AstarScene::Init()
 	player = new Player({startTile->center.x, startTile->center.y});
 	player->Init();
 
-	//
-	trc = GetRect(0, 0, 20, 20);
-	isTarget = false;
-	prevTargetPos = { 0, 0 };
-	currTargetPos = { 0, 0 };
-	speed = 1;
-	changeColor = 50;
-
 	return S_OK;
 }
 
@@ -133,27 +125,6 @@ void AstarScene::Release()
 
 void AstarScene::Update()
 {
-	if (PtInRect(&trc, g_ptMouse))		// 타겟 사각형
-	{
-		if (KeyManager::GetInstance()->IsStayKeyDown(VK_LBUTTON))
-		{
-			int tempX = currTargetPos.x;
-			int tempY = currTargetPos.y;
-
-			float posX = g_ptMouse.x;
-			float posY = g_ptMouse.y;
-
-			UpdateRect(trc, { posX, posY });
-
-			currTargetPos.x = posX / ASTAR_TILE_SIZE;
-			currTargetPos.y = posY / ASTAR_TILE_SIZE;
-			map[tempY][tempX].SetType(AstarTileType::None);
-			map[tempY][tempX].SetColor(RGB(100, 100, 100));
-		}
-
-		map[currTargetPos.y][currTargetPos.x].SetType(AstarTileType::Target);
-		map[currTargetPos.y][currTargetPos.x].SetColor(RGB(200, 200, 0));
-	}
 
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
 	{
