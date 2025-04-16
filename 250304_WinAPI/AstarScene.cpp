@@ -145,6 +145,7 @@ void AstarScene::Release()
 
 void AstarScene::Update()
 {
+	float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
 
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
 	{
@@ -195,7 +196,6 @@ void AstarScene::Update()
 			return;
 		}
 
-		float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
 		currTime += deltaTime;
 		if (currTime >= 0.5f)
 		{
@@ -217,53 +217,56 @@ void AstarScene::Update()
 	}
 
 	// enemy
-	if (!isTarget)
-	{
-		LookAround();
-	}
-	if (target)
-	{
-		UpdateTargetPos(currTile);
 
+	if(enemy)
+	{
+		if (!isTarget)
+		{
+			LookAround();
+		}
+		if (target)
+		{
+			UpdateTargetPos(currTile);
+		}
 		enemyOpenList.clear();
 		enemyCloseList.clear();
 		enemyPath.clear();
 		enemyPathIdx = 0;
 		enemyStartTile = enemyCurrTile;
-	}
-	EnemyFindPath();
 
-	EnemyPrintPath();
+		EnemyFindPath();
 
-	if (enemyMoving)
-	{
-		if (enemyPathIdx >= enemyPath.size())
-		{
-			enemyMoving = false;
-			return;
-		}
+		EnemyPrintPath();
 
-		float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
-		enemyCurrTime += deltaTime;
-		if (enemyCurrTime >= 0.5f)
-		{
-			//currTile->SetColor(RGB(255, 0, 255));
-			enemyCurrTile = &map[enemyPath[enemyPathIdx].y / ASTAR_TILE_SIZE][enemyPath[enemyPathIdx].x / ASTAR_TILE_SIZE];
-			//currTile->SetColor(RGB(255, 0, 0));
-			enemyCurrTime = 0;
-			enemyPathIdx++;
-
-			if (enemyCurrTile == enemyDestTile)
-			{
-				enemyCurrTile->SetColor(RGB(200, 200, 20));
-			}	
-		}
-	}
-	//
-	if (enemy)
-	{
 		enemy->SetPos(enemyCurrTile->center);
 		enemy->Update();
+
+		if (enemyMoving)
+		{
+			if (enemyCurrTile == currTile)
+			{
+				enemyCurrTile->SetColor(RGB(200, 200, 20));
+				enemyMoving = false;
+				return;
+			}
+
+			if (enemyPathIdx >= enemyPath.size())
+			{
+				enemyMoving = false;
+				return;
+			}
+			enemyCurrTime += deltaTime;
+			if (enemyCurrTime >= 0.5f)
+			{
+				//currTile->SetColor(RGB(255, 0, 255));
+				enemyCurrTile = &map[enemyPath[enemyPathIdx].y / ASTAR_TILE_SIZE][enemyPath[enemyPathIdx].x / ASTAR_TILE_SIZE];
+				//currTile->SetColor(RGB(255, 0, 0));
+
+				enemyCurrTime = 0;
+				enemyPathIdx++;
+			}
+		}
+		
 	}
 }
 
@@ -439,7 +442,7 @@ void AstarScene::EnemyFindPath()
 		if (enemyOpenList.empty())
 			return;
 		sort(enemyOpenList.begin(), enemyOpenList.end(), [](AstarTile* t1, AstarTile* t2) {
-			return t1->totalCost > t2->totalCost;
+			return t1->enemyTotalCost > t2->enemyTotalCost;
 			});
 		AstarTile* nextTile = enemyOpenList.back();
 		enemyOpenList.pop_back();
@@ -493,7 +496,7 @@ void AstarScene::AddEnemyOpenList(AstarTile* currTile)
 		if (it1 != enemyCloseList.end())
 			continue;
 
-		int g = enemyCurrTile->costFromStart + cost[i];
+		int g = enemyCurrTile->enemyCostFromStart + cost[i];
 		int h = 10 * sqrt((enemyDestTile->idX - nextTile->idX) * (enemyDestTile->idX - nextTile->idX)
 			+ (enemyDestTile->idY - nextTile->idY) * (enemyDestTile->idY - nextTile->idY));
 
@@ -524,7 +527,8 @@ void AstarScene::SetTarget(Player *player)
 {
 	target = player;
 	enemyMoving = true;
-	enemyDestTile = &(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);
+	//enemyDestTile = &(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);
+	enemyDestTile = currTile;
 }
 
 void AstarScene::LookAround()
