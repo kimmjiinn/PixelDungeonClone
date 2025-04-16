@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Actor.h"
 #include "config.h"
 
@@ -20,6 +20,9 @@ public:
 	void SetPos(POINT pos) { this->pos = pos; }
 
 	void UpdateAnimation();
+
+	//
+	POINT GetPos() { return pos; }
 private:
 	Image* imageIdle[4] = {};
 	Image* imageMove[4] = {};
