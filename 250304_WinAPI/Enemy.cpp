@@ -17,7 +17,7 @@ HRESULT Enemy::Init()
 {
 	Super::Init();
 	currImage = ImageManager::GetInstance()->AddImage(
-		"rat_Idle", L"Image/Rat_Idle.bmp", 16*4, 16, 4, 1, true, RGB(255, 0, 255));
+		"rat_Idle", L"Image/rat_Idle.bmp", 16*4, 16, 4, 1, true, RGB(255, 0, 255));
 	return S_OK;
 }
 

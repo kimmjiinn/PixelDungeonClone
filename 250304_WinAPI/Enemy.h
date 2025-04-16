@@ -20,6 +20,7 @@ public:
 	void SetPos(POINT pos) { this->pos = pos; }
 
 	void UpdateAnimation();
+
 private:
 	Image* imageIdle[4] = {};
 	Image* imageMove[4] = {};
@@ -29,4 +30,6 @@ private:
 	Dir dir = DIR_DOWN;
 	ActState state = ActState::IDLE;
 	bool keyPressed = false;
+
+	bool isTarget = false;
 };
