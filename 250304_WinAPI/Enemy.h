@@ -3,6 +3,7 @@
 #include "config.h"
 
 class Image;
+class AI;
 class Enemy: public Actor
 {
 public:
@@ -26,10 +27,12 @@ private:
 	Image* imageMove[4] = {};
 	Image* imageAttack[4] = {};
 
-	int speed = {};
+	int speed = 1;
 	Dir dir = DIR_DOWN;
 	ActState state = ActState::IDLE;
 	bool keyPressed = false;
 
 	bool isTarget = false;
+
+	AI* ai;
 };

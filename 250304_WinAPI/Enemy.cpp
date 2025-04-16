@@ -2,6 +2,7 @@
 #include "Image.h"
 #include "ImageManager.h"
 #include "TimerManager.h"
+#include "EnemyAI.h"
 
 
 Enemy::Enemy(POINT pos)
@@ -16,8 +17,10 @@ Enemy::~Enemy()
 HRESULT Enemy::Init()
 {
 	Super::Init();
-	currImage = ImageManager::GetInstance()->AddImage(
-		"rat_Idle", L"Image/rat_Idle.bmp", 16*4, 16, 4, 1, true, RGB(255, 0, 255));
+	currImage = ImageManager::GetInstance()->AddImage("rat_Idle", L"Image/rat_Idle.bmp", 16*4, 16, 4, 1, true, RGB(255, 0, 255));
+
+	ai = new AI(this);
+	ai->Init();
 	return S_OK;
 }
 
@@ -43,6 +46,10 @@ void Enemy::Update()
 			currAnimFrame = 0;
 		}
 	}
+
+	// 턴 받아서 진행하기.
+	// 업데이트때마다 분기 결정
+	ai->Update();
 }
 
 void Enemy::Render(HDC hdc)
