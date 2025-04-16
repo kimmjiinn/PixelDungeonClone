@@ -42,15 +42,15 @@ void BattleScene::Release()
 
 void BattleScene::Update()
 {
-	for (auto actor : actors)
-	{
-		actor->gainEnergy(actor->speed);
-		if (actor->hasEnoughEnergy())
-		{
-			auto action = actor->takeTurn();
-			action->perform();
-		}
-	}
+	// for (auto actor : actors)
+	// {
+	// 	actor->gainEnergy(actor->speed);
+	// 	if (actor->hasEnoughEnergy())
+	// 	{
+	// 		auto action = actor->takeTurn();
+	// 		action->perform();
+	// 	}
+	// }
 
 	
 	// if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))

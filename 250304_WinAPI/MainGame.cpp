@@ -6,6 +6,8 @@
 #include "TilemapTool.h"
 #include "AstarScene.h"
 #include "LoadingScene.h"
+#include "DungeonScene.h"
+#include "Camera.h"
 
 HRESULT MainGame::Init()
 {
@@ -16,8 +18,9 @@ HRESULT MainGame::Init()
 	SceneManager::GetInstance()->AddScene("A*알고리즘", new AstarScene());
 	SceneManager::GetInstance()->AddScene("전투씬_1", new BattleScene());
 	SceneManager::GetInstance()->AddScene("타일맵툴", new TilemapTool());
+	SceneManager::GetInstance()->AddScene("픽셀던전", new DungeonScene());
 	SceneManager::GetInstance()->AddLoadingScene("로딩_1", new LoadingScene());
-	SceneManager::GetInstance()->ChangeScene("전투씬_1");
+	SceneManager::GetInstance()->ChangeScene("픽셀던전");
 
 	hdc = GetDC(g_hWnd);
 
@@ -28,7 +31,7 @@ HRESULT MainGame::Init()
 			TEXT("백버퍼 생성 실패"), TEXT("경고"), MB_OK);
 		return E_FAIL;
 	}
-	
+
 	return S_OK;
 }
 
@@ -64,7 +67,7 @@ void MainGame::Render()
 	TimerManager::GetInstance()->Render(hBackBufferDC);
 	wsprintf(szText, TEXT("Mouse X : %d, Y : %d"), g_ptMouse.x, g_ptMouse.y);
 	TextOut(hBackBufferDC, 20, 60, szText, wcslen(szText));
-	
+
 	// 백버퍼에 있는 내용을 메인 hdc에 복사
 	backBuffer->Render(hdc);
 }
@@ -82,18 +85,30 @@ LRESULT MainGame::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 		case 'd': case 'D':
 			SceneManager::GetInstance()->ChangeScene("타일맵툴");
 			break;
+		case 'p': case 'P':
+			SceneManager::GetInstance()->ChangeScene("픽셀던전");
+			break;
 		}
 		break;
 	case WM_LBUTTONDOWN:
 		g_ptMouse.x = LOWORD(lParam);
 		g_ptMouse.y = HIWORD(lParam);
-
 		break;
 	case WM_LBUTTONUP:
 		break;
 	case WM_MOUSEMOVE:
 		g_ptMouse.x = LOWORD(lParam);
 		g_ptMouse.y = HIWORD(lParam);
+		break;
+	case WM_MOUSEWHEEL:
+		// 마우스 휠 메시지 처리
+		{
+			// zDelta 값 추출 (휠 회전 방향과 양)
+			int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+			
+			// 카메라 시스템에 마우스 휠 입력 전달
+			Camera::GetInstance()->HandleMouseWheel(zDelta);
+		}
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
