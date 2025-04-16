@@ -17,7 +17,7 @@ HRESULT MainGame::Init()
 	SceneManager::GetInstance()->AddScene("전투씬_1", new BattleScene());
 	SceneManager::GetInstance()->AddScene("타일맵툴", new TilemapTool());
 	SceneManager::GetInstance()->AddLoadingScene("로딩_1", new LoadingScene());
-	SceneManager::GetInstance()->ChangeScene("A*알고리즘");
+	SceneManager::GetInstance()->ChangeScene("전투씬_1");
 
 	hdc = GetDC(g_hWnd);
 
@@ -28,7 +28,7 @@ HRESULT MainGame::Init()
 			TEXT("백버퍼 생성 실패"), TEXT("경고"), MB_OK);
 		return E_FAIL;
 	}
-
+	
 	return S_OK;
 }
 
@@ -64,7 +64,7 @@ void MainGame::Render()
 	TimerManager::GetInstance()->Render(hBackBufferDC);
 	wsprintf(szText, TEXT("Mouse X : %d, Y : %d"), g_ptMouse.x, g_ptMouse.y);
 	TextOut(hBackBufferDC, 20, 60, szText, wcslen(szText));
-
+	
 	// 백버퍼에 있는 내용을 메인 hdc에 복사
 	backBuffer->Render(hdc);
 }

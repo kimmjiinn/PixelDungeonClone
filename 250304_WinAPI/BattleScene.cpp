@@ -2,11 +2,15 @@
 #include "Image.h"
 #include "CommonFunction.h"
 #include "config.h"
+#include "Player.h"
 
 HRESULT BattleScene::Init()
 {
 	SetClientRect(g_hWnd, WINSIZE_X, TILEMAPTOOL_Y);
 
+	player = new Player();
+	player->Init();
+	
 	sampleTile = ImageManager::GetInstance()->AddImage(
 		"배틀시티_샘플타일", L"Image/mapTiles.bmp", 640, 288,
 		SAMPLE_TILE_X, SAMPLE_TILE_Y);
@@ -18,10 +22,11 @@ HRESULT BattleScene::Init()
 			TEXT("Image/backGround.bmp 생성 실패"), TEXT("경고"), MB_OK);
 		return E_FAIL;
 	}
-
-	//Sleep(3000);
+	
 	Load();
 
+
+	
 	return S_OK;
 }
 
@@ -37,10 +42,22 @@ void BattleScene::Release()
 
 void BattleScene::Update()
 {
-	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))
+	for (auto actor : actors)
 	{
-		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
+		actor->gainEnergy(actor->speed);
+		if (actor->hasEnoughEnergy())
+		{
+			auto action = actor->takeTurn();
+			action->perform();
+		}
 	}
+
+	
+	// if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))
+	// {
+	// 	SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
+	// }
+	player->Update();
 }
 
 void BattleScene::Render(HDC hdc)
@@ -53,6 +70,7 @@ void BattleScene::Render(HDC hdc)
 			tileInfo[i].rc.top, tileInfo[i].frameX,
 			tileInfo[i].frameY, false, false);
 	}
+	player->Render(hdc);
 }
 
 void BattleScene::Load()
