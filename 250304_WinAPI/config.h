@@ -1,6 +1,15 @@
 // config.h
 
 #pragma once
+// 메모리 할당 시 파일, 라인 정보 확인 가능
+//#define _CRTDBG_MAP_ALLOC
+//#include <cstdlib>
+//#include <crtdbg.h>
+//
+//#ifdef _DEBUG
+//#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
+//#endif
+
 #pragma comment(lib, "Winmm.lib")
 
 #include <Windows.h>
@@ -9,6 +18,7 @@
 #include <bitset>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -52,9 +62,25 @@ extern POINT g_ptMouse;
 #define TILE_X	20
 #define TILE_Y	20
 
+#define SAFE_DELETE(ptr) \
+	if (ptr)			 \
+	{					 \
+		ptr->Release();	 \
+		delete ptr;		 \
+		ptr = nullptr;	 \
+	}					 \
+
 typedef struct tagTile
 {
 	RECT rc;
 	int frameX;
 	int frameY;
 } TILE_INFO;
+
+enum Dir
+{
+	DIR_UP,
+	DIR_DOWN,
+	DIR_LEFT,
+	DIR_RIGHT,
+};

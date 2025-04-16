@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include "config.h"
 
 class Image;
 class BattleScene : public GameObject

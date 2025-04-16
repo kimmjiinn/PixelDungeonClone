@@ -1,6 +1,5 @@
 #include "AstarScene.h"
-#include "CommonFunction.h"
-#include "algorithm"
+#include "Player.h"
 
 HRESULT AstarTile::Init()
 {
@@ -60,27 +59,11 @@ void AstarTile::SetColor(COLORREF color)
 	hBrush = CreateSolidBrush(color);
 }
 
-void AstarTile::SetCost(const AstarTile* startTile, const AstarTile* destTile)
-{
-	if (parentTile)
-	{
-		costFromStart = parentTile->costFromStart + GetDistance({ (float)idX, (float)idY }, { (float)parentTile->idX, (float)parentTile->idY });
-	}
-	else
-	{
-		costFromStart = GetDistance({ (float)idX, (float)idY }, { (float)startTile->idX, (float)startTile->idY });
-	}
-
-	costToGoal = GetDistance({ (float)idX, (float)idY }, { (float)destTile->idX, (float)destTile->idY });
-
-	totalCost = costFromStart + costToGoal;
-}
-
 HRESULT AstarScene::Init()
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ÏÑ∏Î°úÎ∞òÎ≥µ (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// Í∞ÄÎ°úÎ∞òÎ≥µ (x)
 		{
 			map[i][j].Init(j, i);
 		}
@@ -92,9 +75,8 @@ HRESULT AstarScene::Init()
 
 	currTile = startTile;
 
-	destTile = &(map[10][19]);
-	destTile->SetColor(RGB(0, 0, 255));
-	destTile->SetType(AstarTileType::End);
+	player = new Player({startTile->center.x, startTile->center.y});
+	player->Init();
 
 	//
 	trc = GetRect(0, 0, 20, 20);
@@ -109,11 +91,49 @@ HRESULT AstarScene::Init()
 
 void AstarScene::Release()
 {
+	//if (startTile)
+	//{
+	//	startTile->Release();
+	//	delete startTile;
+	//	startTile = nullptr;
+	//}
+	//if (destTile)
+	//{
+	//	destTile->Release();
+	//	delete destTile;
+	//	destTile = nullptr;
+	//}
+	//if (currTile)
+	//{
+	//	currTile->Release();
+	//	delete currTile;
+	//	currTile = nullptr;
+	//}
+
+	//for (auto tile : openList)
+	//{
+	//	if (tile)
+	//	{
+	//		tile->Release();
+	//		delete tile;
+	//	}
+	//}
+	//openList.clear();
+	//for (auto tile : closeList)
+	//{
+	//	if (tile)
+	//	{
+	//		tile->Release();
+	//		delete tile;
+	//	}
+	//}
+	//closeList.clear();
+	SAFE_DELETE(player);
 }
 
 void AstarScene::Update()
 {
-	if (PtInRect(&trc, g_ptMouse))		// ≈∏∞Ÿ ªÁ∞¢«¸
+	if (PtInRect(&trc, g_ptMouse))		// ÌÉÄÍ≤ü ÏÇ¨Í∞ÅÌòï
 	{
 		if (KeyManager::GetInstance()->IsStayKeyDown(VK_LBUTTON))
 		{
@@ -137,7 +157,7 @@ void AstarScene::Update()
 
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
 	{
-		// g_ptMouse∑Œ ¿Œµ¶Ω∫∏¶ ∞ËªÍ
+		// g_ptMouseÎ°ú Ïù∏Îç±Ïä§Î•º Í≥ÑÏÇ∞
 		int x, y;
 		x = g_ptMouse.x / ASTAR_TILE_SIZE;
 		y = g_ptMouse.y / ASTAR_TILE_SIZE;
@@ -145,6 +165,7 @@ void AstarScene::Update()
 		if (0 <= x && x < ASTAR_TILE_COUNT &&
 			0 <= y && y < ASTAR_TILE_COUNT)
 		{
+			// ÏãúÏûëÏù¥ÎÇò Î™©Ï†ÅÏßÄÍ∞Ä ÏïÑÎãê Îïå
 			if (map[y][x].GetType() != AstarTileType::Start &&
 				map[y][x].GetType() != AstarTileType::End)
 			{
@@ -154,242 +175,203 @@ void AstarScene::Update()
 		}
 	}
 
-	// TODO 
-	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SPACE))
+
+	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
 	{
-		FindPath();
+		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
+		int idy = g_ptMouse.y / ASTAR_TILE_SIZE;
+		destTile = &(map[idy][idx]);
+		//destTile->SetColor(RGB(0, 0, 255));
+		destTile->SetType(AstarTileType::End);
+
+		moving = true;
 	}
 
-	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))
-	{
-		if (pathList.top()->parentTile == startTile)
-		{
-			for (int i = 0; i < speed - 1; i++)
-			{
-				pathList.pop();
-			}
-			pathList.top()->SetColor(RGB(255, 255, 255));
-			for (int i = 0; i < speed; i++)
-			{
-				if (pathList.size() == 1) continue;
-				pathList.pop();
-			}
-		}
-		else if (pathList.top() == destTile)
-		{
-			pathList.top()->SetColor(RGB(255 - changeColor, 255 - changeColor, 255 - changeColor));
-			changeColor -= 10;
-		}
-		else
-		{
-			pathList.top()->SetColor(RGB(255, 255, 255));
+	openList.clear();
+	closeList.clear();
+	path.clear();
+	pathIdx = 0;
+	startTile = currTile;
+	FindPath();
 
-			for (int i = 0; i < speed; i++)
-			{
-				if (pathList.size() == 1) continue;
-				pathList.pop();
-			}
+	PrintPath();
+	if (moving)
+	{
+		if (pathIdx >= path.size())
+		{
+			moving = false;
+			return;
 		}
+
+		float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
+		currTime += deltaTime;
+		if (currTime >= 0.5f)
+		{
+			//currTile->SetColor(RGB(255, 0, 255));
+			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
+			//currTile->SetColor(RGB(255, 0, 0));
+			currTime = 0;
+			pathIdx++;
+		}
+	}
+	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
+	{
+		SceneManager::GetInstance()->ChangeScene("Ï†ÑÌà¨Ïî¨_1", "Î°úÎî©_1");
+	}
+	if (player)
+	{
+		player->SetPos(currTile->center);
+		player->Update();
 	}
 }
 
 void AstarScene::Render(HDC hdc)
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ÏÑ∏Î°úÎ∞òÎ≥µ (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// Í∞ÄÎ°úÎ∞òÎ≥µ (x)
 		{
 			map[i][j].Render(hdc);
 		}
 	}
-	Rectangle(hdc, trc.left, trc.top, trc.right, trc.bottom);
+  
+	if (player)
+		player->Render(hdc);
 }
+
+FPOINT front[] =
+{
+	FPOINT{-1, 0}, //UP
+	FPOINT{0, -1}, //LEFT
+	FPOINT{1, 0}, //DOWN
+	FPOINT{0, 1},	//RIGHT
+	FPOINT{-1, -1}, //LEFT-UP
+	FPOINT{1, -1},	//LEFT-DOWN
+	FPOINT{1, 1},	//RIGHT-DOWN
+	FPOINT{-1, 1},	//RIGHT-UP
+};
+int cost[] =
+{
+	10,
+	10,
+	10,
+	10,
+	14,
+	14,
+	14,
+	14
+};
 
 void AstarScene::FindPath()
 {
+	if (!destTile)
+		return;
 	if (currTile)
 	{
-		AddOpenList(currTile);
-		currTile = GetLowestCostTile();
-		closeList.push_back(currTile);
-
 		if (currTile == destTile)
 		{
-			PrintPath();
+			currTile = startTile;
 			return;
-
 		}
-
-		if (!isTarget)
-		{
-			LookAround(currTile);
-		}
-		if (isTarget)
-		{
-			if ((prevTargetPos.x != currTargetPos.x) || (prevTargetPos.y != currTargetPos.y))
-			{
-				SetTarget(currTargetPos.x, currTargetPos.y);
-				prevTargetPos = currTargetPos;
-			}
-		}
-
-			FindPath();
+		// Ï£ºÏúÑÏóê ÏûàÎäî Ïù¥ÎèôÍ∞ÄÎä•Ìïú ÌÉÄÏùºÎì§ÏùÑ FÍ∞í Í≥ÑÏÇ∞ ÌõÑÎ≥¥Ïóê ÎÑ£ÎäîÎã§.
+		AddOpenList(currTile);
 
 
-		if (KeyManager::GetInstance()->IsOnceKeyDown(VK_RETURN))
-		{
-			SceneManager::GetInstance()->ChangeScene("¿¸≈ıæ¿_1", "∑Œµ˘_1");
-		}
+		// ÌõÑÎ≥¥Îì§ Ï§ë FÍ∞íÏù¥ Í∞ÄÏû• ÏûëÏùÄ ÌÉÄÏùºÏùÑ Îã§Ïùå currTile ÏÑ†Ï†ï
+		if (openList.empty())
+			return;
+		sort(openList.begin(), openList.end(), [](AstarTile* t1, AstarTile* t2) {
+			return t1->totalCost > t2->totalCost;
+			});
+		AstarTile* nextTile = openList.back();
+		openList.pop_back();
+
+		currTile = nextTile;
+		// Î∞òÎ≥µ
+		FindPath();
+
 	}
 }
 
 void AstarScene::AddOpenList(AstarTile* currTile)
 {
-	static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
-	static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
-
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; ++i)
 	{
-		int nx = currTile->idX + dx[i];
-		int ny = currTile->idY + dy[i];
-		float moveCost = (abs(dx[i]) + abs(dy[i]) == 2) ? 1.4142f : 1.0f;
+		int nextX = currTile->idX + front[i].x;
+		int nextY = currTile->idY + front[i].y;
 
-		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
-			ny < 0 || ny >= ASTAR_TILE_COUNT)
+		if (nextX < 0 || nextX >= ASTAR_TILE_COUNT)
+			continue;
+		if (nextY < 0 || nextY >= ASTAR_TILE_COUNT)
 			continue;
 
-		AstarTile* neighbor = &map[ny][nx];
+		AstarTile* nextTile = &map[nextY][nextX];
 
-		if (!isValidNeighbor(neighbor)) continue;
+		if (!CanGo(nextTile))
+			continue;
 
-		// ¥Î∞¢º± ¿Ãµø Ω√ ¿Œ¡¢ ∫Æ ∞ÀªÁ
-		if (abs(dx[i]) + abs(dy[i]) == 2) {
-			bool wallX = map[currTile->idY][nx].GetType() == AstarTileType::Wall;
-			bool wallY = map[ny][currTile->idX].GetType() == AstarTileType::Wall;
-			if (wallX || wallY) continue;
-		}
-		// ¿Ãµø ∫ÒøÎ »Æ¿Œ π◊ ∞ªΩ≈ ø©∫Œ »Æ¿Œ
-		UpdateNeighborCosts(neighbor, currTile, moveCost);
-	}
+		auto it1 = find(closeList.begin(), closeList.end(), nextTile);
+		if (it1 != closeList.end())
+			continue;
 
-}
+		int g = currTile->costFromStart + cost[i];
+		int h = 10 * sqrt((destTile->idX - nextTile->idX) * (destTile->idX - nextTile->idX)
+				+ (destTile->idY - nextTile->idY) * (destTile->idY - nextTile->idY));
 
-void AstarScene::UpdateNeighborCosts(AstarTile* neighbor, AstarTile* current, float moveCost)
-{
-	float newG = current->costFromStart + moveCost;
-	bool inOpen = find(openList.begin(), openList.end(), neighbor) != openList.end();
-
-	if (inOpen == false || newG < neighbor->costFromStart)
-	{
-		neighbor->costFromStart = newG;
-		neighbor->costToGoal = Heuristic(neighbor, destTile);
-		neighbor->totalCost = neighbor->costFromStart + neighbor->costToGoal;
-		neighbor->parentTile = current;
-
-		if (!inOpen)
+		auto it2 = find(openList.begin(), openList.end(), nextTile);
+		if (it2 != openList.end())
 		{
-			neighbor->SetColor(RGB(255, 0, 255));
-			openList.push_back(neighbor);
+			if ((*it2)->costFromStart > g)
+			{
+				(*it2)->costFromStart = g;
+				(*it2)->totalCost = (*it2)->costFromStart + h;
+				(*it2)->SetParent(currTile);
+			}
 		}
+		else			
+		{
+			nextTile->costFromStart = g;
+			nextTile->costToGoal = h;
+			nextTile->totalCost = g + h;
+			nextTile->SetParent(currTile);
+			//nextTile->SetColor(RGB(128, 128, 128));
+			openList.push_back(nextTile);
+		}
+		closeList.push_back(currTile);
 	}
-}
-
-float AstarScene::Heuristic(AstarTile* a, AstarTile* b) {
-	int dx = abs(a->idX - b->idX);
-	int dy = abs(a->idY - b->idY);
-	return max(dx, dy) + (1.4142f - 1) * min(dx, dy);
-}
-AstarTile* AstarScene::GetLowestCostTile()
-{
-	auto iter = min_element(openList.begin(), openList.end(), [](AstarTile* a, AstarTile* b) {
-		return a->totalCost < b->totalCost;
-		});
-
-	AstarTile* tile = *iter;
-	openList.erase(iter);
-	return tile;
 }
 
 void AstarScene::PrintPath()
 {
+	if (!destTile)
+		return;
 	AstarTile* curr = destTile;
+	path.clear();
+	path.push_back({ curr->center.x, curr->center.y });
 	while (curr != nullptr && curr != startTile)
 	{
-		pathList.push(curr);
-		curr->SetColor(RGB(0, 0, 0));
+
+		if (!curr->parentTile)
+			return;
+		//curr->SetColor(RGB(0, 0, 0));
 		curr = curr->parentTile;
+		path.push_back({ curr->center.x, curr->center.y });
 	}
+	path.pop_back();
+	reverse(path.begin(), path.end());
 }
 
-bool AstarScene::isValidNeighbor(AstarTile* neighbor)
+bool AstarScene::CanGo(AstarTile* nextTile)
 {
-	bool isNotClose = find(closeList.begin(), closeList.end(), neighbor) == closeList.end();
-	return neighbor->GetType() != AstarTileType::Wall && isNotClose;
-}
+	//ÌÉÄÏùºÌÉÄÏûÖÏù¥ Î≤ΩÏù¥Î©¥ false
+	if (nextTile->GetType() == AstarTileType::Wall)
+		return false;
+	//Ï£ºÎ≥Ä Î≤ΩÏù¥Î©¥ ÎåÄÍ∞ÅÏù¥Îèô X
+	int dx = nextTile->idX - currTile->idX;
+	int dy = nextTile->idY - currTile->idY;
 
-void AstarScene::SetTarget(int x, int y)
-{
-	if (destTile)
-	{
-		map[destTile->idY][destTile->idX].SetType(AstarTileType::None);
-		map[destTile->idY][destTile->idX].SetColor(RGB(100, 100, 100));
-		destTile = nullptr;
-	}
-
-	if (0 <= x && x < ASTAR_TILE_COUNT &&
-		0 <= y && y < ASTAR_TILE_COUNT)
-	{
-		if (map[y][x].GetType() != AstarTileType::Start && map[y][x].GetType() != AstarTileType::Wall)	//≈∏∞Ÿ¡ˆ¡°¿Ã µµ¬¯¡ˆ¡°
-		{
-			destTile = &map[y][x];
-			destTile->SetColor(RGB(0, 0, 255));
-			destTile->SetType(AstarTileType::End);
-		}
-	}
-
-	if (startTile)
-	{
-		map[startTile->idY][startTile->idX].SetType(AstarTileType::None);
-		map[startTile->idY][startTile->idX].SetColor(RGB(100, 100, 100));
-		startTile = nullptr;
-	}
-
-	if (currTile->GetType() != AstarTileType::End && currTile->GetType() != AstarTileType::Wall)
-	{
-		startTile = currTile;
-		startTile->SetColor(RGB(255, 0, 0));
-		startTile->SetType(AstarTileType::Start);
-	}
-
-	if (!closeList.empty())
-	{
-		closeList.clear();
-	}
-	if (!openList.empty())
-	{
-		openList.clear();
-	}
-}
-
-void AstarScene::LookAround(AstarTile* currTile)		// ∞¢ πÊ«‚¿∏∑Œ 1≈∏¿œ±Ó¡ˆ ≈Ωªˆ
-{
-	static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
-	static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
-
-	for (int i = 0; i < 8; i++)
-	{
-		int nx = currTile->idX + dx[i];
-		int ny = currTile->idY + dy[i];
-
-		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
-			ny < 0 || ny >= ASTAR_TILE_COUNT)
-			continue;
-
-		if (map[ny][nx].GetType() == AstarTileType::Target)
-		{
-			isTarget = true;
-			SetTarget(nx, ny);
-			break;
-		}
-	}
+	if (map[currTile->idY + dy][currTile->idX].type == AstarTileType::Wall
+		&& map[currTile->idY][currTile->idX + dx].type == AstarTileType::Wall)
+		return false;
+	return true;
 }
