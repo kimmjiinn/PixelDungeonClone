@@ -26,6 +26,13 @@ private:
 	vector<Acting*> vecAiSelector;
 	Acting* aiCurrState;
 	Enemy* enemy;
+
+	Node* startTile;
+	Node* destTile;
+	Node* currTile;
+
+	vector<Node*> openList;
+	vector<Node*> closeList;
 public:
 	AI(Enemy* enemy) : enemy(enemy) {};
 
