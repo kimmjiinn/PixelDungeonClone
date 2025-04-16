@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "GameObject.h"
 #include "config.h"
 #include <stack>
@@ -49,11 +49,20 @@ public:
 	AstarTile* GetParent() { return this->parentTile; }
 	int GetIdX() { return idX; }
 	int GetIdY() { return idY; }
+
+	// enemy
+	void SetEnemyParent(AstarTile* tile) { this->enemyParentTile = tile; }
+
 	friend class AstarScene;
 public:
 	float costFromStart;	// g : ���������� ���� �������� ���
 	float costToGoal;		// h : ���� ������ ������������ ������
 	float totalCost;		// f : g + h
+
+	//
+	float enemyCostFromStart;
+	float enemyCostToGoal;
+	float enemyTotalCost;
 
 private:
 	int idX, idY;
@@ -63,6 +72,8 @@ private:
 
 	AstarTile* parentTile;	// g�� ���ŵ� ������ ���� ��带 ����
 
+	AstarTile* enemyParentTile;
+
 	COLORREF color;
 	HBRUSH hBrush;
 	HBRUSH hOldBrush;
@@ -70,6 +81,7 @@ private:
 };
 
 class Player;
+class Enemy;
 class AstarScene : public GameObject
 {
 public:
@@ -85,10 +97,26 @@ public:
 	void PrintPath();
 	bool CanGo(AstarTile* nextTile);
 
+	// enemy
+	void EnemyFindPath();
+	void EnemyPrintPath();
+	void AddEnemyOpenList(AstarTile* currTile);
+	void SetTarget(Player* player);
+	void LookAround();
+	void UpdateTargetPos(AstarTile* currTile);
+	bool EnemyCanGo(AstarTile* nextTile);
+
 	float currTime = 1.f;
 	vector<POINT> path;
 	int pathIdx = 0;
 	bool moving = false;
+
+	// enemy
+	float enemyCurrTime = 1.f;
+	vector<POINT> enemyPath;
+	int enemyPathIdx = 0;
+	bool enemyMoving = false;
+
 public:
 	// ������ �迭 ���� ����
 	AstarTile map[ASTAR_TILE_COUNT][ASTAR_TILE_COUNT];
@@ -101,7 +129,19 @@ public:
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 
+	// enemy
+	bool isTarget = false;
+	Player* target = nullptr;
+	AstarTile* enemyStartTile;	
+	AstarTile* enemyDestTile;	
+
+	AstarTile* enemyCurrTile;	
+
+	vector<AstarTile*> enemyOpenList;
+	vector<AstarTile*> enemyCloseList;
+
 private:
 	Player* player;
+	Enemy* enemy;
 };
 
