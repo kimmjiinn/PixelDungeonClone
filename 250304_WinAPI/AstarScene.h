@@ -1,27 +1,27 @@
-#pragma once
+ï»¿#pragma once
 #include "GameObject.h"
 #include "config.h"
 
 /*
-	¿­¸° ¸ñ·Ï : Å½»öÇÒ ³ëµåµéÀ» ÀúÀå, ½ÃÀÛ ³ëµå Ãß°¡
-	´ÝÈù ¸ñ·Ï : ÀÌ¹Ì Å½»öÇÑ ³ëµåµéÀ» ÀúÀå, ÃÊ±â¿¡´Â ºñ¾î ÀÖÀ½
-	g(n) : ½ÃÀÛ ³ëµå¿¡¼­ ³ëµå n±îÁö ÀÌµ¿ÇÏ´Â ½ÇÁ¦ ºñ¿ë 
-	h(n) : ³ëµå n¿¡¼­ ¸ñÇ¥ ³ëµå±îÁöÀÇ ÃßÁ¤ºñ¿ë(ÈÞ¸®½ºÆ½)
-	f(n) : ³ëµå n¿¡¼­ ¸ñÇ¥ ³ëµå±î µµ´ÞÇÏ´Â ÃÑ ºñ¿ë, f(n) = g(n) + h(n)
+	ì—´ë¦° ëª©ë¡ : íƒìƒ‰í•  ë…¸ë“œë“¤ì„ ì €ìž¥, ì‹œìž‘ ë…¸ë“œ ì¶”ê°€
+	ë‹«ížŒ ëª©ë¡ : ì´ë¯¸ íƒìƒ‰í•œ ë…¸ë“œë“¤ì„ ì €ìž¥, ì´ˆê¸°ì—ëŠ” ë¹„ì–´ ìžˆìŒ
+	g(n) : ì‹œìž‘ ë…¸ë“œì—ì„œ ë…¸ë“œ nê¹Œì§€ ì´ë™í•˜ëŠ” ì‹¤ì œ ë¹„ìš© 
+	h(n) : ë…¸ë“œ nì—ì„œ ëª©í‘œ ë…¸ë“œê¹Œì§€ì˜ ì¶”ì •ë¹„ìš©(íœ´ë¦¬ìŠ¤í‹±)
+	f(n) : ë…¸ë“œ nì—ì„œ ëª©í‘œ ë…¸ë“œê¹Œ ë„ë‹¬í•˜ëŠ” ì´ ë¹„ìš©, f(n) = g(n) + h(n)
 
-	Å½»ö °úÁ¤ :
-	 1) ¿­¸° ¸ñ·Ï¿¡¼­ f°ªÀÌ °¡Àå ÀÛÀº ³ëµå nÀ» ¼±ÅÃÇØ¼­ ÇöÀç ³ëµå·Î ¼³Á¤
-	 2) ÇöÀç ³ëµå nÀÌ ¸ñÇ¥³ëµå¶ó¸é °æ·Î Å½»öÀ» Á¾·áÇÏ°í, °æ·Î¸¦ ¹ÝÈ¯
-	 3) ±×·¸Áö ¾ÊÀ¸¸é, ÇöÀç ³ëµå¸¦ ¿­¸° ¸ñ·Ï¿¡¼­ Á¦°ÅÇÏ°í ´ÝÈù ¸ñ·Ï¿¡ Ãß°¡
-	 4) ÇöÀç ³ëµå n¿¡ ´ëÇÑ ¸ðµç ÀÌ¿ô³ëµå m¿¡ ´ëÇØ¼­ ´ÙÀ½ ´Ü°è¸¦ ¼öÇà
-		4_1) mÀÌ ´ÝÈù ¸ñ·Ï¿¡ ÀÖÀ¸¸é ¹«½Ã
-		4_2) mÀÌ ¿­¸° ¸ñ·Ï¿¡ ¾øÀ¸¸é Ãß°¡( g(m), h(m), f(m) / 
-			ºÎ¸ð ³ëµå(ÀÌÀü ³ëµå)¸¦ nÀ¸·Î ¼³Á¤)
-		4_3) mÀÌ ÀÌ¹Ì ¿­¸° ¸ñ·Ï¿¡ ÀÖ°í, ÇöÀç °æ·Î¸¦ ÅëÇØ¼­ ´õ ÀÛÀº g°ªÀ»
-			°¡Áú ¼ö ÀÖ´Ù¸é, g(m), f(m)°»½Å , ºÎ¸ð ³ëµåµµ °»½Å
+	íƒìƒ‰ ê³¼ì • :
+	 1) ì—´ë¦° ëª©ë¡ì—ì„œ fê°’ì´ ê°€ìž¥ ìž‘ì€ ë…¸ë“œ nì„ ì„ íƒí•´ì„œ í˜„ìž¬ ë…¸ë“œë¡œ ì„¤ì •
+	 2) í˜„ìž¬ ë…¸ë“œ nì´ ëª©í‘œë…¸ë“œë¼ë©´ ê²½ë¡œ íƒìƒ‰ì„ ì¢…ë£Œí•˜ê³ , ê²½ë¡œë¥¼ ë°˜í™˜
+	 3) ê·¸ë ‡ì§€ ì•Šìœ¼ë©´, í˜„ìž¬ ë…¸ë“œë¥¼ ì—´ë¦° ëª©ë¡ì—ì„œ ì œê±°í•˜ê³  ë‹«ížŒ ëª©ë¡ì— ì¶”ê°€
+	 4) í˜„ìž¬ ë…¸ë“œ nì— ëŒ€í•œ ëª¨ë“  ì´ì›ƒë…¸ë“œ mì— ëŒ€í•´ì„œ ë‹¤ìŒ ë‹¨ê³„ë¥¼ ìˆ˜í–‰
+		4_1) mì´ ë‹«ížŒ ëª©ë¡ì— ìžˆìœ¼ë©´ ë¬´ì‹œ
+		4_2) mì´ ì—´ë¦° ëª©ë¡ì— ì—†ìœ¼ë©´ ì¶”ê°€( g(m), h(m), f(m) / 
+			ë¶€ëª¨ ë…¸ë“œ(ì´ì „ ë…¸ë“œ)ë¥¼ nìœ¼ë¡œ ì„¤ì •)
+		4_3) mì´ ì´ë¯¸ ì—´ë¦° ëª©ë¡ì— ìžˆê³ , í˜„ìž¬ ê²½ë¡œë¥¼ í†µí•´ì„œ ë” ìž‘ì€ gê°’ì„
+			ê°€ì§ˆ ìˆ˜ ìžˆë‹¤ë©´, g(m), f(m)ê°±ì‹  , ë¶€ëª¨ ë…¸ë“œë„ ê°±ì‹ 
 
-	°æ·Î ±¸¼º :
-	¸ñÇ¥ ³ëµå¿¡¼­ ½ÃÀÛ ³ëµå±îÁö ºÎ¸ð³ëµå¸¦ °æ·Î¸¦ ¿ªÃßÀûÇØ¼­ °æ·Î ±¸¼º
+	ê²½ë¡œ êµ¬ì„± :
+	ëª©í‘œ ë…¸ë“œì—ì„œ ì‹œìž‘ ë…¸ë“œê¹Œì§€ ë¶€ëª¨ë…¸ë“œë¥¼ ê²½ë¡œë¥¼ ì—­ì¶”ì í•´ì„œ ê²½ë¡œ êµ¬ì„±
 */
 
 #define ASTAR_TILE_SIZE		30
@@ -50,8 +50,8 @@ public:
 	int GetIdY() { return idY; }
 	friend class AstarScene;
 public:
-	float costFromStart;	// g : ½ÃÀÛÁ¡ºÎÅÍ ÇöÀç ³ëµå±îÁöÀÇ ºñ¿ë
-	float costToGoal;		// h : ÇöÀç ³ëµåºÎÅÍ ¸ñÀûÁö±îÁöÀÇ ¿¹»óºñ¿ë
+	float costFromStart;	// g : ì‹œìž‘ì ë¶€í„° í˜„ìž¬ ë…¸ë“œê¹Œì§€ì˜ ë¹„ìš©
+	float costToGoal;		// h : í˜„ìž¬ ë…¸ë“œë¶€í„° ëª©ì ì§€ê¹Œì§€ì˜ ì˜ˆìƒë¹„ìš©
 	float totalCost;		// f : g + h
 
 private:
@@ -60,7 +60,7 @@ private:
 	RECT rc;
 	AstarTileType type;
 
-	AstarTile* parentTile;	// g°¡ °»½ÅµÉ ¶§¸¶´Ù ÀÌÀü ³ëµå¸¦ °»½Å
+	AstarTile* parentTile;	// gê°€ ê°±ì‹ ë  ë•Œë§ˆë‹¤ ì´ì „ ë…¸ë“œë¥¼ ê°±ì‹ 
 
 	COLORREF color;
 	HBRUSH hBrush;
@@ -83,19 +83,20 @@ public:
 	void AddOpenList(AstarTile* currTile);
 	void PrintPath();
 	bool CanGo(AstarTile* nextTile);
+	void Reset();
 
 	float currTime = 1.f;
 	vector<POINT> path;
 	int pathIdx = 0;
 	bool moving = false;
 public:
-	// ÀÌÂ÷¿ø ¹è¿­ ¸ÊÀ» ±¸¼º
+	// ì´ì°¨ì› ë°°ì—´ ë§µì„ êµ¬ì„±
 	AstarTile map[ASTAR_TILE_COUNT][ASTAR_TILE_COUNT];
 
-	AstarTile* startTile;	// »¡°£»ö
-	AstarTile* destTile;	// ÆÄ¶õ»ö
+	AstarTile* startTile;	// ë¹¨ê°„ìƒ‰
+	AstarTile* destTile;	// íŒŒëž€ìƒ‰
 
-	AstarTile* currTile;	// (³ì»ö) ÈÄº¸Å¸ÀÏÀ» ¼±Á¤ÇÒ ¶§ÀÇ ±âÁØÅ¸ÀÏ
+	AstarTile* currTile;	// (ë…¹ìƒ‰) í›„ë³´íƒ€ì¼ì„ ì„ ì •í•  ë•Œì˜ ê¸°ì¤€íƒ€ì¼
 
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;

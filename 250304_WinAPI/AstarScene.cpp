@@ -1,4 +1,4 @@
-#include "AstarScene.h"
+Ôªø#include "AstarScene.h"
 #include "Player.h"
 
 HRESULT AstarTile::Init()
@@ -61,9 +61,9 @@ void AstarTile::SetColor(COLORREF color)
 
 HRESULT AstarScene::Init()
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ºº∑Œπ›∫π (y)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ÏÑ∏Î°úÎ∞òÎ≥µ (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// ∞°∑Œπ›∫π (x)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// Í∞ÄÎ°úÎ∞òÎ≥µ (x)
 		{
 			map[i][j].Init(j, i);
 		}
@@ -125,9 +125,28 @@ void AstarScene::Release()
 
 void AstarScene::Update()
 {
+	//ÎîîÎ≤ÑÍπÖÏö© ÏÉâ Ï¥àÍ∏∞Ìôî
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
+	{
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)
+		{
+			map[i][j].costFromStart = 0;
+			map[i][j].costToGoal = 0;
+			map[i][j].totalCost = 0;
+			if (map[i][j].type == AstarTileType::None)
+				map[i][j].SetColor(RGB(100, 100, 100));
+			else if (map[i][j].type == AstarTileType::End)
+				map[i][j].SetColor(RGB(0, 0, 255));
+			else if (map[i][j].type == AstarTileType::Start)
+				map[i][j].SetColor(RGB(255, 0, 0));
+			else if (map[i][j].type == AstarTileType::Wall)
+				map[i][j].SetColor(RGB(100, 150, 100));
+		}
+	}
+
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
 	{
-		// g_ptMouse∑Œ ¿Œµ¶Ω∫∏¶ ∞ËªÍ
+		// g_ptMouseÎ°ú Ïù∏Îç±Ïä§Î•º Í≥ÑÏÇ∞
 		int x, y;
 		x = g_ptMouse.x / ASTAR_TILE_SIZE;
 		y = g_ptMouse.y / ASTAR_TILE_SIZE;
@@ -135,37 +154,57 @@ void AstarScene::Update()
 		if (0 <= x && x < ASTAR_TILE_COUNT &&
 			0 <= y && y < ASTAR_TILE_COUNT)
 		{
-			// Ω√¿€¿Ã≥™ ∏Ò¿˚¡ˆ∞° æ∆¥“ ∂ß
+			// ÏãúÏûëÏù¥ÎÇò Î™©Ï†ÅÏßÄÍ∞Ä ÏïÑÎãê Îïå
 			if (map[y][x].GetType() != AstarTileType::Start &&
 				map[y][x].GetType() != AstarTileType::End)
 			{
 				map[y][x].SetColor(RGB(100, 150, 100));
 				map[y][x].SetType(AstarTileType::Wall);
+
 			}
 		}
 	}
-
+	startTile->SetColor(RGB(0,0,255));	
+	
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
 	{
 		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
 		int idy = g_ptMouse.y / ASTAR_TILE_SIZE;
-		destTile = &(map[idy][idx]);
-		//destTile->SetColor(RGB(0, 0, 255));
-		destTile->SetType(AstarTileType::End);
 
+		if (idx < 0 || idx >= ASTAR_TILE_COUNT || idy < 0 || idy >= ASTAR_TILE_COUNT)
+			return;
+
+		AstarTile* clickTile = &(map[idy][idx]);
+		//ÌÅ¥Î¶≠Ìïú ÌÉÄÏùºÏù¥ Î≤ΩÏù¥Î©¥ Î¶¨ÌÑ¥
+		if (clickTile->GetType() == AstarTileType::Wall)
+			return;
+		// Í∏∞Ï°¥ ÎèÑÏ∞©ÏßÄ NoneTypeÏúºÎ°ú Î¶¨ÏÖã
+		if (destTile)
+			destTile->SetType(AstarTileType::None);
+		// ÎèÑÏ∞©ÏßÄÎ•º ÌÅ¥Î¶≠Ìïú ÌÉÄÏùºÏúºÎ°ú Í∞±Ïã†
+		destTile = clickTile;
+		destTile->SetType(AstarTileType::End);
 		moving = true;
 	}
 
-	openList.clear();
-	closeList.clear();
-	path.clear();
-	pathIdx = 0;
-	startTile = currTile;
+	Reset();
 	FindPath();
-
 	PrintPath();
+
+	if (player)
+	{
+		player->SetPos(currTile->center);
+		player->Update();
+	}
+	
+	if (destTile) destTile->SetColor(RGB(255, 0, 0));
+
 	if (moving)
 	{
+		if (path.empty())
+		{
+			return;
+		}
 		if (pathIdx >= path.size())
 		{
 			moving = false;
@@ -185,21 +224,15 @@ void AstarScene::Update()
 	}
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
 	{
-		SceneManager::GetInstance()->ChangeScene("¿¸≈ıæ¿_1", "∑Œµ˘_1");
+		SceneManager::GetInstance()->ChangeScene("Ï†ÑÌà¨Ïî¨_1", "Î°úÎî©_1");
 	}
-	if (player)
-	{
-		player->SetPos(currTile->center);
-		player->Update();
-	}
-	// TODO 
 }
 
 void AstarScene::Render(HDC hdc)
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ºº∑Œπ›∫π (y)
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// ÏÑ∏Î°úÎ∞òÎ≥µ (y)
 	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// ∞°∑Œπ›∫π (x)
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// Í∞ÄÎ°úÎ∞òÎ≥µ (x)
 		{
 			map[i][j].Render(hdc);
 		}
@@ -240,14 +273,19 @@ void AstarScene::FindPath()
 		if (currTile == destTile)
 		{
 			currTile = startTile;
+			currTile->SetType(AstarTileType::None);
 			return;
 		}
-		// ¡÷¿ßø° ¿÷¥¬ ¿Ãµø∞°¥…«— ≈∏¿œµÈ¿ª F∞™ ∞ËªÍ »ƒ∫∏ø° ≥÷¥¬¥Ÿ.
+		// Ï£ºÏúÑÏóê ÏûàÎäî Ïù¥ÎèôÍ∞ÄÎä•Ìïú ÌÉÄÏùºÎì§ÏùÑ FÍ∞í Í≥ÑÏÇ∞ ÌõÑÎ≥¥Ïóê ÎÑ£ÎäîÎã§.
 		AddOpenList(currTile);
 
-		// »ƒ∫∏µÈ ¡ﬂ F∞™¿Ã ∞°¿Â ¿€¿∫ ≈∏¿œ¿ª ¥Ÿ¿Ω currTile º±¡§
+		// ÌõÑÎ≥¥Îì§ Ï§ë FÍ∞íÏù¥ Í∞ÄÏû• ÏûëÏùÄ ÌÉÄÏùºÏùÑ Îã§Ïùå currTile ÏÑ†Ï†ï
 		if (openList.empty())
+		{
+			moving = false;
+			currTile = startTile;
 			return;
+		}
 		sort(openList.begin(), openList.end(), [](AstarTile* t1, AstarTile* t2) {
 			return t1->totalCost > t2->totalCost;
 			});
@@ -255,7 +293,7 @@ void AstarScene::FindPath()
 		openList.pop_back();
 
 		currTile = nextTile;
-		// π›∫π
+		// Î∞òÎ≥µ
 		FindPath();
 	}
 }
@@ -301,7 +339,6 @@ void AstarScene::AddOpenList(AstarTile* currTile)
 			nextTile->costToGoal = h;
 			nextTile->totalCost = g + h;
 			nextTile->SetParent(currTile);
-			//nextTile->SetColor(RGB(128, 128, 128));
 			openList.push_back(nextTile);
 		}
 		closeList.push_back(currTile);
@@ -312,33 +349,69 @@ void AstarScene::PrintPath()
 {
 	if (!destTile)
 		return;
+
 	AstarTile* curr = destTile;
 	path.clear();
-	path.push_back({ curr->center.x, curr->center.y });
+
+	if (currTile == destTile->GetParent())
+		path.push_back({ curr->center.x, curr->center.y });	
+
 	while (curr != nullptr && curr != startTile)
 	{
 		if (!curr->parentTile)
-			return;
-		//curr->SetColor(RGB(0, 0, 0));
+			break;
+
+		if (curr->parentTile->GetType() == AstarTileType::Wall)
+		{
+			path.clear();
+			destTile = nullptr;
+			break;
+		}
+
+		curr->SetColor(RGB(0, 0, 0));
 		curr = curr->parentTile;
 		path.push_back({ curr->center.x, curr->center.y });
 	}
-	path.pop_back();
+
+	if (!path.empty())
+	{
+		path.pop_back();
+	}
+	else
+	{
+		moving = false;
+	}
+
 	reverse(path.begin(), path.end());
 }
 
 bool AstarScene::CanGo(AstarTile* nextTile)
 {
-	//≈∏¿œ≈∏¿‘¿Ã ∫Æ¿Ã∏È false
+	//ÌÉÄÏùºÌÉÄÏûÖÏù¥ Î≤ΩÏù¥Î©¥ false
 	if (nextTile->GetType() == AstarTileType::Wall)
 		return false;
-	//¡÷∫Ø ∫Æ¿Ã∏È ¥Î∞¢¿Ãµø X
+
+	//Ï£ºÎ≥Ä Î≤ΩÏù¥Î©¥ ÎåÄÍ∞ÅÏù¥Îèô X
 	int dx = nextTile->idX - currTile->idX;
 	int dy = nextTile->idY - currTile->idY;
 
 	if (map[currTile->idY + dy][currTile->idX].type == AstarTileType::Wall
 		&& map[currTile->idY][currTile->idX + dx].type == AstarTileType::Wall)
 		return false;
+
 	return true;
 }
 
+void AstarScene::Reset()
+{
+	startTile->SetType(AstarTileType::None);
+	if(destTile) destTile->SetType(AstarTileType::None);
+	startTile = currTile;
+	currTile->SetType(AstarTileType::Start);
+
+	openList.clear();
+	closeList.clear();
+	path.clear();
+
+	pathIdx = 0;
+}
