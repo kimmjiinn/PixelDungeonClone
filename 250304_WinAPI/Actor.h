@@ -9,19 +9,19 @@ enum class ActState
 	ATTACK,
 	ActStateLength
 };
+struct StatInfo 
+{
+	int hp;
+	int damage;
+	int exp;
+	int level;
+	int hunger;
+	int speed;
+};
 class Image;
+class CombatComponent;
 class Actor : public GameObject
 {
-public:
-	struct StatInfo 
-	{
-		int hp;
-		int damage;
-		int exp;
-		int level;
-		int hunger;
-		int speed;
-	};
 public:
 	using Super = GameObject;
 	Actor();
@@ -31,6 +31,10 @@ public:
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc);
+	virtual void Attack(Actor* target);
+
+	StatInfo GetInfo() { return Info; }
+	CombatComponent* GetCombatComponent() { return combatComponent; }
 
 protected:
 	StatInfo Info;
@@ -39,5 +43,6 @@ protected:
 	int currAnimFrame;
 	float currTick;
 	Image* currImage;
+	CombatComponent* combatComponent;
 };
 

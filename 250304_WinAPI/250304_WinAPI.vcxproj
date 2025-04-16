@@ -131,6 +131,8 @@
     <ClCompile Include="AstarScene.cpp" />
     <ClCompile Include="BattleScene.cpp" />
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="CombatComponent.cpp" />
+    <ClCompile Include="CombatManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageManager.cpp" />
@@ -149,6 +151,8 @@
     <ClInclude Include="AstarScene.h" />
     <ClInclude Include="BattleScene.h" />
     <ClInclude Include="Button.h" />
+    <ClInclude Include="CombatComponent.h" />
+    <ClInclude Include="CombatManager.h" />
     <ClInclude Include="CommonFunction.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="GameObject.h" />

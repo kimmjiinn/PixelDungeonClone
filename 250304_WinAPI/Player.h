@@ -3,6 +3,7 @@
 #include "config.h"
 
 class Image;
+class CombatComponent;
 class Player : public Actor
 {
 public:

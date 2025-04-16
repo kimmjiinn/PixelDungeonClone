@@ -28,3 +28,8 @@ void Actor::Render(HDC hdc)
 {
 	Super::Render(hdc);
 }
+
+void Actor::Attack(Actor* target)
+{
+
+}
