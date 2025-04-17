@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "GameObject.h"
 #include "config.h"
 
@@ -17,7 +17,9 @@ struct StatInfo
 	int level;
 	int hunger;
 	int speed;
+	int energy;
 };
+
 class Image;
 class CombatComponent;
 class Actor : public GameObject
@@ -32,8 +34,10 @@ public:
 	virtual void Update();
 	virtual void Render(HDC hdc);
 	virtual void Attack(Actor* target);
+	virtual void Move();
+	virtual void TakeTurn() = 0;
 
-	StatInfo GetInfo() { return Info; }
+	StatInfo GetInfo() const { return Info; }
 	CombatComponent* GetCombatComponent() { return combatComponent; }
 
 protected:

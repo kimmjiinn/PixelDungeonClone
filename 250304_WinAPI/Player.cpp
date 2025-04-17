@@ -1,4 +1,4 @@
-#include "Player.h"
+﻿#include "Player.h"
 #include "Image.h"
 #include "CombatComponent.h"
 #include "ImageManager.h"
@@ -52,6 +52,14 @@ void Player::Render(HDC hdc)
 	Super::Render(hdc);
 	if (currImage)
 		currImage->FrameRender(hdc, pos.x, pos.y, currAnimFrame, 0);
+}
+
+void Player::Move()
+{
+}
+
+void Player::TakeTurn()
+{
 }
 
 void Player::SetState(ActState state)

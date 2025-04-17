@@ -1,4 +1,4 @@
-#include "Actor.h"
+﻿#include "Actor.h"
 
 Actor::Actor()
 {
@@ -32,4 +32,8 @@ void Actor::Render(HDC hdc)
 void Actor::Attack(Actor* target)
 {
 
+}
+
+void Actor::Move()
+{
 }

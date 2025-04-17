@@ -1,4 +1,4 @@
-#include "CombatManager.h"
+﻿#include "CombatManager.h"
 #include "CombatComponent.h"
 #include "Actor.h"
 
@@ -9,7 +9,7 @@ void CombatManager::AddCombatComponent(Actor* actor)
     combatList.push_back(comp);
 }
 
-void CombatManager::UpdateCombat()
+void CombatManager::ProccessCombat()
 {
     auto attacker = combatList[0];
     auto target = combatList[1];

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Actor.h"
 #include "config.h"
 
@@ -8,6 +8,7 @@ class Player : public Actor
 {
 public:
 	using Super = Actor;
+
 	Player(POINT pos);
 	virtual ~Player();
 
@@ -15,6 +16,8 @@ public:
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc);
+	void Move() override;
+	void TakeTurn();
 
 	void SetState(ActState state);
 	void SetDir(Dir dir);
@@ -26,7 +29,6 @@ private:
 	Image* imageMove[4] = {};
 	Image* imageAttack[4] = {};
 
-	int speed = {};
 	Dir dir = DIR_DOWN;
 	ActState state = ActState::IDLE;
 	bool keyPressed = false;

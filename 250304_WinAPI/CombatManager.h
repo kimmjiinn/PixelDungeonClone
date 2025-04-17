@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #pragma once
 #include "config.h"
 
@@ -9,7 +9,7 @@ class CombatManager
 public:
     void AddCombatComponent(Actor* actor);
 
-    void UpdateCombat();
+    void ProccessCombat();
 
 private:
     vector<CombatComponent*> combatList;

@@ -185,19 +185,12 @@ void AstarScene::Update()
 		destTile = clickTile;
 		destTile->SetType(AstarTileType::End);
 		moving = true;
+
 	}
 
 	Reset();
 	FindPath();
 	PrintPath();
-
-	if (player)
-	{
-		player->SetPos(currTile->center);
-		player->Update();
-	}
-	
-	if (destTile) destTile->SetColor(RGB(255, 0, 0));
 
 	if (moving)
 	{
@@ -215,13 +208,23 @@ void AstarScene::Update()
 		currTime += deltaTime;
 		if (currTime >= 0.5f)
 		{
-			//currTile->SetColor(RGB(255, 0, 255));
 			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
-			//currTile->SetColor(RGB(255, 0, 0));
 			currTime = 0;
 			pathIdx++;
 		}
 	}
+
+
+
+	if (player)
+	{
+		player->SetPos(currTile->center);
+		player->Update();
+	}
+	
+	if (destTile) destTile->SetColor(RGB(255, 0, 0));
+
+
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
 	{
 		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
@@ -243,14 +246,14 @@ void AstarScene::Render(HDC hdc)
 
 FPOINT front[] =
 {
-	FPOINT{-1, 0}, //UP
-	FPOINT{0, -1}, //LEFT
-	FPOINT{1, 0}, //DOWN
-	FPOINT{0, 1},	//RIGHT
-	FPOINT{-1, -1}, //LEFT-UP
-	FPOINT{1, -1},	//LEFT-DOWN
-	FPOINT{1, 1},	//RIGHT-DOWN
-	FPOINT{-1, 1},	//RIGHT-UP
+	FPOINT{-1, 0},	    //UP 
+	FPOINT{0, -1},		//LEFT
+	FPOINT{1, 0},		//DOWN
+	FPOINT{0, 1},	   	//RIGHT
+	FPOINT{-1, -1},		//LEFT-UP
+	FPOINT{1, -1},		//LEFT-DOWN
+	FPOINT{1, 1},		//RIGHT-DOWN
+	FPOINT{-1, 1},		//RIGHT-UP
 };
 int cost[] =
 {
