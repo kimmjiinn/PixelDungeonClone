@@ -22,6 +22,10 @@ public:
 
 	void UpdateAnimation();
 
+	void Move() override;
+	void TakeTurn();
+
+
 private:
 	Image* imageIdle[4] = {};
 	Image* imageMove[4] = {};

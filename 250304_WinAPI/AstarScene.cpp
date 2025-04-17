@@ -184,8 +184,8 @@ void AstarScene::Update()
 			}
 		}
 	}
-	startTile->SetColor(RGB(0,0,255));	
-	
+	startTile->SetColor(RGB(0, 0, 255));
+
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
 	{
 		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
@@ -234,14 +234,12 @@ void AstarScene::Update()
 		}
 	}
 
-
-
 	if (player)
 	{
 		player->SetPos(currTile->center);
 		player->Update();
 	}
-	
+
 	if (destTile) destTile->SetColor(RGB(255, 0, 0));
 
 
@@ -249,60 +247,63 @@ void AstarScene::Update()
 	{
 		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
 
-	// enemy
-
-	if(enemy)
-	{
-		if (!isTarget)
-		{
-			LookAround();
-		}
-		if (target)
-		{
-			UpdateTargetPos(currTile);
-		}
-		enemyOpenList.clear();
-		enemyCloseList.clear();
-		enemyPath.clear();
-		enemyPathIdx = 0;
-		enemyStartTile = enemyCurrTile;
-
-		EnemyFindPath();
-
-		EnemyPrintPath();
-
-		// 위치 업데이트. 플레이어 위치와 같으면 위치 업데이트 안함.
-		if(enemyCurrTile != currTile)
-		{
-			enemy->SetPos(enemyCurrTile->center);
-			enemy->Update();
-		}
-		else
-		{
-			enemyCurrTile->SetColor(RGB(200, 200, 20));
-			enemy->Update();
-		}
-
-		if (enemyMoving)
-		{
-			if (enemyPathIdx >= enemyPath.size())
-			{
-				return;
-			}
-
-			enemyCurrTime += deltaTime;
-			if (enemyCurrTime >= 0.5f)
-			{
-				//currTile->SetColor(RGB(255, 0, 255));
-
-				enemyCurrTile = &map[enemyPath[enemyPathIdx].y / ASTAR_TILE_SIZE][enemyPath[enemyPathIdx].x / ASTAR_TILE_SIZE];
-				//currTile->SetColor(RGB(255, 0, 0));
-
-				enemyCurrTime = 0;
-				enemyPathIdx++;
-			}
-		}
 	}
+		// enemy
+
+		if (enemy)
+		{
+			if (!isTarget)
+			{
+				LookAround();
+			}
+			if (target)
+			{
+				UpdateTargetPos(currTile);
+			}
+
+			EnemyReset();
+			//enemyOpenList.clear();
+			//enemyCloseList.clear();
+			//enemyPath.clear();
+			//enemyPathIdx = 0;
+			//enemyStartTile = enemyCurrTile;
+
+			EnemyFindPath();
+
+			EnemyPrintPath();
+
+			// 위치 업데이트. 플레이어 위치와 같으면 위치 업데이트 안함.
+			if (enemyCurrTile != currTile)
+			{
+				enemy->SetPos(enemyCurrTile->center);
+				enemy->Update();
+			}
+			else
+			{
+				enemyCurrTile->SetColor(RGB(200, 200, 20));
+				enemy->Update();
+			}
+
+			if (enemyMoving)
+			{
+				if (enemyPathIdx >= enemyPath.size())
+				{
+					return;
+				}
+
+				enemyCurrTime += deltaTime;
+				if (enemyCurrTime >= 0.5f)
+				{
+					//currTile->SetColor(RGB(255, 0, 255));
+
+					enemyCurrTile = &map[enemyPath[enemyPathIdx].y / ASTAR_TILE_SIZE][enemyPath[enemyPathIdx].x / ASTAR_TILE_SIZE];
+					//currTile->SetColor(RGB(255, 0, 0));
+
+					enemyCurrTime = 0;
+					enemyPathIdx++;
+				}
+			}
+		}
 }
 
 void AstarScene::Render(HDC hdc)
@@ -486,7 +487,7 @@ bool AstarScene::CanGo(AstarTile* nextTile)
 void AstarScene::Reset()
 {
 	startTile->SetType(AstarTileType::None);
-	if(destTile) destTile->SetType(AstarTileType::None);
+	if (destTile) destTile->SetType(AstarTileType::None);
 	startTile = currTile;
 	currTile->SetType(AstarTileType::Start);
 
@@ -495,6 +496,7 @@ void AstarScene::Reset()
 	path.clear();
 
 	pathIdx = 0;
+}
 
 void AstarScene::EnemyFindPath()
 {
@@ -532,7 +534,9 @@ void AstarScene::EnemyPrintPath()
 		return;
 	AstarTile* eCurr = enemyDestTile;
 	enemyPath.clear();
-	enemyPath.push_back({ eCurr->center.x, eCurr->center.y });
+
+	//if (enemyCurrTile == enemyDestTile->GetEnemyParent())
+		enemyPath.push_back({ eCurr->center.x, eCurr->center.y });
 
 	while (eCurr != nullptr && eCurr != enemyStartTile)
 	{
@@ -645,4 +649,18 @@ bool AstarScene::EnemyCanGo(AstarTile* nextTile)
 		&& map[enemyCurrTile->idY][enemyCurrTile->idX + dx].type == AstarTileType::Wall)
 		return false;
 	return true;
+}
+
+void AstarScene::EnemyReset()
+{
+	enemyStartTile->SetType(AstarTileType::None);
+	if (enemyDestTile) enemyDestTile->SetType(AstarTileType::None);
+	enemyStartTile = enemyCurrTile;
+	enemyCurrTile->SetType(AstarTileType::Start);
+
+	enemyOpenList.clear();
+	enemyCloseList.clear();
+	enemyPath.clear();
+
+	enemyPathIdx = 0;
 }

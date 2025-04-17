@@ -51,6 +51,7 @@ public:
 
 	// enemy
 	void SetEnemyParent(AstarTile* tile) { this->enemyParentTile = tile; }
+	AstarTile* GetEnemyParent() { return this->enemyParentTile; }
 
 	friend class AstarScene;
 public:
@@ -105,6 +106,7 @@ public:
 	void LookAround();
 	void UpdateTargetPos(AstarTile* currTile);
 	bool EnemyCanGo(AstarTile* nextTile);
+	void EnemyReset();
 
 	float currTime = 1.f;
 	vector<POINT> path;

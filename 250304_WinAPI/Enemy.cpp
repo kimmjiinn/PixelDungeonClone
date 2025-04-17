@@ -86,3 +86,11 @@ void Enemy::UpdateAnimation()
 		break;
 	}
 }
+
+void Enemy::Move()
+{
+}
+
+void Enemy::TakeTurn()
+{
+}
