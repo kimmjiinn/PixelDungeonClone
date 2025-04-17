@@ -41,7 +41,7 @@ void Enemy::Update()
 	{
 		currTick = 0;
 		currAnimFrame++;
-		if (currAnimFrame >= currImage->GetMaxFrameX())
+		if (currAnimFrame >= 4/*currImage->GetMaxFrameX()*/)
 		{
 			currAnimFrame = 0;
 		}
@@ -93,4 +93,14 @@ void Enemy::Move()
 
 void Enemy::TakeTurn()
 {
+}
+
+POINT Enemy::GetDestIdx()
+{
+	return { destPos.x / 30 , destPos.y / 30 };
+}
+
+void Enemy::UpdateFov()
+{
+
 }

@@ -40,7 +40,7 @@ void Player::Update()
 	{
 		currTick = 0;
 		currAnimFrame++;
-		if (currAnimFrame >= currImage->GetMaxFrameX())
+		if (currAnimFrame >= 57 /*currImage->GetMaxFrameX()*/)
 		{
 			currAnimFrame = 0;
 		}
