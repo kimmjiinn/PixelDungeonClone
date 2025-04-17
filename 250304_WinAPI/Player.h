@@ -36,4 +36,3 @@ private:
 	ActState state = ActState::IDLE;
 	bool keyPressed = false;
 };
-

@@ -7,6 +7,7 @@ TurnManager::TurnManager()
 
 TurnManager::~TurnManager()
 {
+
 }
 
 void TurnManager::ProcessTurn()

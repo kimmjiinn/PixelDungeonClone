@@ -9,6 +9,7 @@ Player::Player(POINT pos)
 	this->pos = pos;
 
 	combatComponent = new CombatComponent(this->Info.hp, this->Info.damage);
+
 }
 
 Player::~Player()
@@ -20,7 +21,7 @@ HRESULT Player::Init()
 	Super::Init();
 	currImage = ImageManager::GetInstance()->AddImage(
 		"dalia", L"Image\\Dalia(Child).Textures.bmp", 2736, 48, 57, 1, true, RGB(255, 0, 255));
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 void Player::Release()

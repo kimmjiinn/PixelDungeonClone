@@ -13,4 +13,3 @@ public:
 private:
 	Actor* actor;
 };
-
