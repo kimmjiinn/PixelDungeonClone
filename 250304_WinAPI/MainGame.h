@@ -5,6 +5,7 @@ class Timer;
 class Image;
 class EnemyManager;
 class TilemapTool;
+class D2DImage;
 class MainGame : public GameObject
 {
 private:
@@ -17,7 +18,8 @@ private:
 	TilemapTool* tilemapTool;
 
 	Timer* timer;
-
+	D2DImage* test;
+	
 public:
 	virtual HRESULT Init() override;
 	virtual void Release() override;

@@ -135,6 +135,8 @@
     <ClCompile Include="CombatComponent.cpp" />
     <ClCompile Include="CombatManager.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="D2DImage.cpp" />
+    <ClCompile Include="D2DImageManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageManager.cpp" />
@@ -160,6 +162,8 @@
     <ClInclude Include="CommonFunction.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="D2DImage.h" />
+    <ClInclude Include="D2DImageManager.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageManager.h" />

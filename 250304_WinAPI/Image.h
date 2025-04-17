@@ -72,7 +72,7 @@ public:
 
 	// 화면에 출력
 	void Render(HDC hdc, int destX = 0, int destY = 0);
-	void Render(HDC hdc, int destX, int destY, int frameIndex, bool isFlip = false);
+	// void Render(HDC hdc, int destX, int destY, int frameIndex, bool isFlip = false);
 	void FrameRender(HDC hdc, int destX, int destY,
 		int frameX, int frameY, bool isFlip = false, bool isCenter = true);
 
@@ -87,8 +87,8 @@ public:
 		return NULL;
 	}
 
-	inline int GetMaxFrameX() { return imageInfo->maxFrameX; }
-	inline int GetMaxFrameY() { return imageInfo->maxFrameY; }
+	// inline int GetMaxFrameX() { return imageInfo->maxFrameX; }
+	// inline int GetMaxFrameY() { return imageInfo->maxFrameY; }
 	inline int GetWidth() { return imageInfo->width; }
 	inline int GetHeight() { return imageInfo->height; }
 	inline int GetFrameWidth() { return imageInfo->frameWidth; }

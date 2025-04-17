@@ -1,6 +1,7 @@
 // main.cpp
 
 #include "config.h"
+#include "D2DImage.h"
 #include "MainGame.h"
 
 HINSTANCE g_hInstance;	// 프로그램 인스턴스 핸들
@@ -81,7 +82,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		NULL, NULL, g_hInstance, NULL);
 
 	ShowWindow(g_hWnd, nCmdShow);
-
+	D2DImage::InitD2D(g_hWnd);
 	TimerManager::GetInstance()->Init();
 	g_mainGame.Init();
 
