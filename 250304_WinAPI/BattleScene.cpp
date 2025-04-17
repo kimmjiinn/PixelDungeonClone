@@ -8,7 +8,7 @@ HRESULT BattleScene::Init()
 {
 	SetClientRect(g_hWnd, WINSIZE_X, TILEMAPTOOL_Y);
 
-	player = new Player();
+	player = new Player({0,0});
 	player->Init();
 	
 	sampleTile = ImageManager::GetInstance()->AddImage(

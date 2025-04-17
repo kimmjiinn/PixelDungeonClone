@@ -1,4 +1,6 @@
 ﻿#include "AstarScene.h"
+
+#include "CommonFunction.h"
 #include "Player.h"
 #include "Enemy.h"
 #include "config.h"
@@ -10,6 +12,8 @@ HRESULT AstarTile::Init()
 
 HRESULT AstarTile::Init(int idX, int idY)
 {
+	SetClientRect(g_hWnd, WINSIZE_X, TILEMAPTOOL_Y);
+	
 	this->idX = idX;
 	this->idY = idY;
 
@@ -245,7 +249,7 @@ void AstarScene::Update()
 
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
 	{
-		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
+		SceneManager::GetInstance()->ChangeScene("전투씬_1");
 
 	}
 		// enemy

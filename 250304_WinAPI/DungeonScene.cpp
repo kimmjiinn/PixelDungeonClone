@@ -28,7 +28,7 @@ HRESULT DungeonScene::Init()
     }
     
     // 플레이어 생성 및 초기화
-    player = new Player();
+    player = new Player({0,0});
     if (FAILED(player->Init()))
     {
         MessageBox(g_hWnd, TEXT("플레이어 초기화 실패"), TEXT("경고"), MB_OK);
@@ -39,20 +39,20 @@ HRESULT DungeonScene::Init()
     Camera::GetInstance()->Init();
     
     // 턴 매니저 초기화
-    TurnManager::GetInstance()->Init();
+    // TurnManager::GetInstance()->Init();
     
     // 플레이어에 타일맵 참조 설정
-    player->SetTilemap(tilemap);
+    // player->SetTilemap(tilemap);
     
     // 카메라에 타일맵과 플레이어 참조 설정
     Camera::GetInstance()->SetTilemap(tilemap);
     Camera::GetInstance()->SetPlayer(player);
     
     // 턴 매니저에 타일맵 참조 설정
-    TurnManager::GetInstance()->SetTilemap(tilemap);
+    // TurnManager::GetInstance()->SetTilemap(tilemap);
     
     // 턴 매니저에 플레이어 추가
-    TurnManager::GetInstance()->AddActor(player);
+    // TurnManager::GetInstance()->AddActor(player);
     
     // 에너지 기반 턴 시스템 시작
     // 턴 매니저가 자동으로 액터들의 에너지를 관리하고 턴을 처리함
@@ -83,7 +83,7 @@ void DungeonScene::Release()
     Camera::GetInstance()->Release();
     
     // 턴 매니저 해제
-    TurnManager::GetInstance()->Release();
+    // TurnManager::GetInstance()->Release();
 }
 
 void DungeonScene::Update()
@@ -100,7 +100,7 @@ void DungeonScene::Update()
     Camera::GetInstance()->Update();
     
     // 턴 매니저 업데이트 (에너지 기반 턴 처리)
-    TurnManager::GetInstance()->Update();
+    // TurnManager::GetInstance()->Update();
     
     // 카메라 플레이어 추적 토글 (F 키)
     if (KeyManager::GetInstance()->IsOnceKeyDown('F'))
@@ -130,9 +130,9 @@ void DungeonScene::Render(HDC hdc)
     
     // 디버그 정보 표시
     wchar_t szText[128];
-    wsprintf(szText, TEXT("FPS: %.1f, Turn: %d"), 
-        TimerManager::GetInstance()->GetDeltaTime(),
-        TurnManager::GetInstance()->GetTurnCount());
+    wsprintf(szText, TEXT("FPS: %.1f"), 
+        TimerManager::GetInstance()->GetDeltaTime());
+        // TurnManager::GetInstance()->GetTurnCount());
     TextOut(hdc, 20, 20, szText, wcslen(szText));
     
     wsprintf(szText, TEXT("Camera: %.1f"), //, Follow: %s"), 
@@ -142,11 +142,11 @@ void DungeonScene::Render(HDC hdc)
     
     if (player)
     {
-        POINT pos = player->GetPosition();
+        POINT pos = player->GetPos();
         wsprintf(szText, TEXT("Player: %d, %d, Energy: %d, Speed: %d"), 
             pos.x, pos.y,
-            player->energy,
-            player->speed);
+            player->GetInfo().energy,
+            player->GetInfo().speed);
         TextOut(hdc, 20, 60, szText, wcslen(szText));
     }
 }

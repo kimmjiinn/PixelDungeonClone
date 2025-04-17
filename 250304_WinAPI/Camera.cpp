@@ -58,7 +58,7 @@ void Camera::Update()
     // 플레이어 추적
     if (isFollowingPlayer && player)
     {
-        targetPosition = player->GetPosition();
+        targetPosition = player->GetPos();
     }
     
     // 키보드 입력으로 카메라 이동
@@ -146,7 +146,7 @@ void Camera::SetPlayer(Player* player)
     // 플레이어가 설정되면 카메라 위치도 업데이트
     if (player && isFollowingPlayer)
     {
-        position = player->GetPosition();
+        position = player->GetPos();
         targetPosition = position;
     }
 }
@@ -217,7 +217,7 @@ void Camera::SetFollowPlayer(bool follow)
     // 플레이어 추적 설정 시 바로 플레이어 위치로 이동
     if (isFollowingPlayer && player)
     {
-        targetPosition = player->GetPosition();
+        targetPosition = player->GetPos();
     }
 }
 
