@@ -94,13 +94,3 @@ void Enemy::Move()
 void Enemy::TakeTurn()
 {
 }
-
-POINT Enemy::GetDestIdx()
-{
-	return { destPos.x / 30 , destPos.y / 30 };
-}
-
-void Enemy::UpdateFov()
-{
-
-}
