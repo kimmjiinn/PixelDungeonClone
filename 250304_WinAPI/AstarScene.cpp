@@ -95,7 +95,6 @@ HRESULT AstarScene::Init()
 	enemy->Init();
 	//isTarget = true;
 	//enemyMoving = true;
-
 	return S_OK;
 }
 
@@ -146,6 +145,24 @@ void AstarScene::Release()
 void AstarScene::Update()
 {
 	float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
+	//디버깅용 색 초기화
+	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
+	{
+		for (int j = 0; j < ASTAR_TILE_COUNT; j++)
+		{
+			map[i][j].costFromStart = 0;
+			map[i][j].costToGoal = 0;
+			map[i][j].totalCost = 0;
+			if (map[i][j].type == AstarTileType::None)
+				map[i][j].SetColor(RGB(100, 100, 100));
+			else if (map[i][j].type == AstarTileType::End)
+				map[i][j].SetColor(RGB(0, 0, 255));
+			else if (map[i][j].type == AstarTileType::Start)
+				map[i][j].SetColor(RGB(255, 0, 0));
+			else if (map[i][j].type == AstarTileType::Wall)
+				map[i][j].SetColor(RGB(100, 150, 100));
+		}
+	}
 
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
 	{
@@ -163,33 +180,45 @@ void AstarScene::Update()
 			{
 				map[y][x].SetColor(RGB(100, 150, 100));
 				map[y][x].SetType(AstarTileType::Wall);
+
 			}
 		}
 	}
-
-
+	startTile->SetColor(RGB(0,0,255));	
+	
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
 	{
 		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
 		int idy = g_ptMouse.y / ASTAR_TILE_SIZE;
-		destTile = &(map[idy][idx]);
-		//destTile->SetColor(RGB(0, 0, 255));
-		destTile->SetType(AstarTileType::End);
 
+		if (idx < 0 || idx >= ASTAR_TILE_COUNT || idy < 0 || idy >= ASTAR_TILE_COUNT)
+			return;
+
+		AstarTile* clickTile = &(map[idy][idx]);
+		//클릭한 타일이 벽이면 리턴
+		if (clickTile->GetType() == AstarTileType::Wall)
+			return;
+		// 기존 도착지 NoneType으로 리셋
+		if (destTile)
+			destTile->SetType(AstarTileType::None);
+		// 도착지를 클릭한 타일으로 갱신
+		destTile = clickTile;
+		destTile->SetType(AstarTileType::End);
 		moving = true;
+
 	}
 
-	openList.clear();
-	closeList.clear();
-	path.clear();
-	pathIdx = 0;
-	startTile = currTile;
+	Reset();
 
 	FindPath();
-
 	PrintPath();
+
 	if (moving)
 	{
+		if (path.empty())
+		{
+			return;
+		}
 		if (pathIdx >= path.size())
 		{
 			moving = false;
@@ -199,22 +228,26 @@ void AstarScene::Update()
 		currTime += deltaTime;
 		if (currTime >= 0.5f)
 		{
-			//currTile->SetColor(RGB(255, 0, 255));
 			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
-			//currTile->SetColor(RGB(255, 0, 0));
 			currTime = 0;
 			pathIdx++;
 		}
 	}
-	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
-	{
-		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
-	}
+
+
+
 	if (player)
 	{
 		player->SetPos(currTile->center);
 		player->Update();
 	}
+	
+	if (destTile) destTile->SetColor(RGB(255, 0, 0));
+
+
+	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
+	{
+		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
 
 	// enemy
 
@@ -268,10 +301,7 @@ void AstarScene::Update()
 				enemyCurrTime = 0;
 				enemyPathIdx++;
 			}
-
-
 		}
-		
 	}
 }
 
@@ -284,7 +314,6 @@ void AstarScene::Render(HDC hdc)
 			map[i][j].Render(hdc);
 		}
 	}
-  
 	if (player)
 		player->Render(hdc);
 
@@ -294,14 +323,14 @@ void AstarScene::Render(HDC hdc)
 
 FPOINT front[] =
 {
-	FPOINT{-1, 0}, //UP
-	FPOINT{0, -1}, //LEFT
-	FPOINT{1, 0}, //DOWN
-	FPOINT{0, 1},	//RIGHT
-	FPOINT{-1, -1}, //LEFT-UP
-	FPOINT{1, -1},	//LEFT-DOWN
-	FPOINT{1, 1},	//RIGHT-DOWN
-	FPOINT{-1, 1},	//RIGHT-UP
+	FPOINT{-1, 0},	    //UP 
+	FPOINT{0, -1},		//LEFT
+	FPOINT{1, 0},		//DOWN
+	FPOINT{0, 1},	   	//RIGHT
+	FPOINT{-1, -1},		//LEFT-UP
+	FPOINT{1, -1},		//LEFT-DOWN
+	FPOINT{1, 1},		//RIGHT-DOWN
+	FPOINT{-1, 1},		//RIGHT-UP
 };
 int cost[] =
 {
@@ -324,6 +353,7 @@ void AstarScene::FindPath()
 		if (currTile == destTile)
 		{
 			currTile = startTile;
+			currTile->SetType(AstarTileType::None);
 			return;
 		}
 		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
@@ -331,7 +361,11 @@ void AstarScene::FindPath()
 
 		// 후보들 중 F값이 가장 작은 타일을 다음 currTile 선정
 		if (openList.empty())
+		{
+			moving = false;
+			currTile = startTile;
 			return;
+		}
 		sort(openList.begin(), openList.end(), [](AstarTile* t1, AstarTile* t2) {
 			return t1->totalCost > t2->totalCost;
 			});
@@ -341,7 +375,6 @@ void AstarScene::FindPath()
 		currTile = nextTile;
 		// 반복
 		FindPath();
-
 	}
 }
 
@@ -386,7 +419,6 @@ void AstarScene::AddOpenList(AstarTile* currTile)
 			nextTile->costToGoal = h;
 			nextTile->totalCost = g + h;
 			nextTile->SetParent(currTile);
-			//nextTile->SetColor(RGB(128, 128, 128));
 			openList.push_back(nextTile);
 		}
 		closeList.push_back(currTile);
@@ -397,20 +429,39 @@ void AstarScene::PrintPath()
 {
 	if (!destTile)
 		return;
+
 	AstarTile* curr = destTile;
 	path.clear();
-	path.push_back({ curr->center.x, curr->center.y });
+
+	if (currTile == destTile->GetParent())
+		path.push_back({ curr->center.x, curr->center.y });	
 
 	while (curr != nullptr && curr != startTile)
 	{
-
 		if (!curr->parentTile)
-			return;
-		//curr->SetColor(RGB(0, 0, 0));
+			break;
+
+		if (curr->parentTile->GetType() == AstarTileType::Wall)
+		{
+			path.clear();
+			destTile = nullptr;
+			break;
+		}
+
+		curr->SetColor(RGB(0, 0, 0));
 		curr = curr->parentTile;
 		path.push_back({ curr->center.x, curr->center.y });
 	}
-	path.pop_back();
+
+	if (!path.empty())
+	{
+		path.pop_back();
+	}
+	else
+	{
+		moving = false;
+	}
+
 	reverse(path.begin(), path.end());
 }
 
@@ -419,6 +470,7 @@ bool AstarScene::CanGo(AstarTile* nextTile)
 	//타일타입이 벽이면 false
 	if (nextTile->GetType() == AstarTileType::Wall)
 		return false;
+
 	//주변 벽이면 대각이동 X
 	int dx = nextTile->idX - currTile->idX;
 	int dy = nextTile->idY - currTile->idY;
@@ -426,8 +478,23 @@ bool AstarScene::CanGo(AstarTile* nextTile)
 	if (map[currTile->idY + dy][currTile->idX].type == AstarTileType::Wall
 		&& map[currTile->idY][currTile->idX + dx].type == AstarTileType::Wall)
 		return false;
+
 	return true;
 }
+
+
+void AstarScene::Reset()
+{
+	startTile->SetType(AstarTileType::None);
+	if(destTile) destTile->SetType(AstarTileType::None);
+	startTile = currTile;
+	currTile->SetType(AstarTileType::Start);
+
+	openList.clear();
+	closeList.clear();
+	path.clear();
+
+	pathIdx = 0;
 
 void AstarScene::EnemyFindPath()
 {

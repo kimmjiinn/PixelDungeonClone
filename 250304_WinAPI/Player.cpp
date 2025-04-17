@@ -1,11 +1,14 @@
-#include "Player.h"
+﻿#include "Player.h"
 #include "Image.h"
+#include "CombatComponent.h"
 #include "ImageManager.h"
 #include "TimerManager.h"
 
 Player::Player(POINT pos)
 {
 	this->pos = pos;
+
+	combatComponent = new CombatComponent(this->Info.hp, this->Info.damage);
 }
 
 Player::~Player()
@@ -42,7 +45,6 @@ void Player::Update()
 			currAnimFrame = 0;
 		}
 	}
-
 }
 
 void Player::Render(HDC hdc)
@@ -52,9 +54,17 @@ void Player::Render(HDC hdc)
 		currImage->FrameRender(hdc, pos.x, pos.y, currAnimFrame, 0);
 }
 
+void Player::Move()
+{
+}
+
+void Player::TakeTurn()
+{
+}
+
 void Player::SetState(ActState state)
 {
-	if (state == state)
+	if (this->state == state)
 		return;
 
 	this->state = state;
