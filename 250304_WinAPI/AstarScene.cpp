@@ -238,33 +238,38 @@ void AstarScene::Update()
 
 		EnemyPrintPath();
 
-		enemy->SetPos(enemyCurrTile->center);
-		enemy->Update();
+		// 위치 업데이트. 플레이어 위치와 같으면 위치 업데이트 안함.
+		if(enemyCurrTile != currTile)
+		{
+			enemy->SetPos(enemyCurrTile->center);
+			enemy->Update();
+		}
+		else
+		{
+			enemyCurrTile->SetColor(RGB(200, 200, 20));
+			enemy->Update();
+		}
 
 		if (enemyMoving)
 		{
-			if (enemyCurrTile == currTile)
+			if (enemyPathIdx >= enemyPath.size())
 			{
-				enemyCurrTile->SetColor(RGB(200, 200, 20));
-				enemyMoving = false;
 				return;
 			}
 
-			if (enemyPathIdx >= enemyPath.size())
-			{
-				enemyMoving = false;
-				return;
-			}
 			enemyCurrTime += deltaTime;
 			if (enemyCurrTime >= 0.5f)
 			{
 				//currTile->SetColor(RGB(255, 0, 255));
+
 				enemyCurrTile = &map[enemyPath[enemyPathIdx].y / ASTAR_TILE_SIZE][enemyPath[enemyPathIdx].x / ASTAR_TILE_SIZE];
 				//currTile->SetColor(RGB(255, 0, 0));
 
 				enemyCurrTime = 0;
 				enemyPathIdx++;
 			}
+
+
 		}
 		
 	}
@@ -557,7 +562,7 @@ void AstarScene::UpdateTargetPos(AstarTile* currTile)
 {
 	enemyDestTile = currTile;/*&(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);*/
 	//destTile->SetColor(RGB(0, 0, 255));
-	enemyDestTile->SetType(AstarTileType::End);
+	//enemyDestTile->SetType(AstarTileType::End);
 }
 
 bool AstarScene::EnemyCanGo(AstarTile* nextTile)
