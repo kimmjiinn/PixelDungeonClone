@@ -255,28 +255,15 @@ void AstarScene::Update()
 
 	if (destTile) destTile->SetColor(RGB(255, 0, 0));
 
-
 		// enemy
-
 		if (enemy)
 		{
-			//if (!isTarget)
-			//{
-			//	LookAround();
-			//}
-			//if (target)
-			//{
-			//	UpdateTargetPos(currTile);
-			//}
-
 			EnemyReset();
-
 			EnemyFindPath();
-
 			EnemyPrintPath();
 
-			// 위치 업데이트. 플레이어 위치와 같으면 위치 업데이트 안함.
-			if (enemyCurrTile != currTile)
+			// 위치 업데이트.
+			if (enemyCurrTile != enemyDestTile)
 			{
 				enemy->SetPos(enemyCurrTile->center);
 				enemy->Update();
@@ -285,19 +272,14 @@ void AstarScene::Update()
 			{
 				enemy->Update();
 			}
+
 			if (isAttack)
 			{
 				enemyCurrTile->SetColor(RGB(200, 200, 20));	// 노란색
-				enemy->Update();
 			}
-
+					
 			if (enemyMoving)
 			{
-				if (enemyPathIdx >= enemyPath.size())
-				{
-					return;
-				}
-
 				enemyCurrTime += deltaTime;
 				if (enemyCurrTime >= 0.5f)
 				{
@@ -308,6 +290,11 @@ void AstarScene::Update()
 
 					enemyCurrTime = 0;
 					enemyPathIdx++;
+				}
+
+				if (enemyPathIdx >= enemyPath.size() )
+				{
+					enemyMoving = false;
 				}
 			}
 		}
@@ -606,43 +593,6 @@ void AstarScene::AddEnemyOpenList(AstarTile* currTile)
 	}
 }
 
-void AstarScene::SetTarget(Player *player)
-{
-	target = player;
-	enemyMoving = true;
-	//enemyDestTile = &(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);
-	enemyDestTile = currTile;
-}
-
-void AstarScene::LookAround()
-{
-	static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
-	static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
-
-	for (int i = 0; i < 8; i++)
-	{
-		int nx = enemyCurrTile->idX + dx[i];
-		int ny = enemyCurrTile->idY + dy[i];
-
-		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
-			ny < 0 || ny >= ASTAR_TILE_COUNT)
-			continue;
-
-		if ((map[ny][nx].center.x == player->GetPos().x) && (map[ny][nx].center.y == player->GetPos().y))
-		{
-			SetTarget(player);
-			break;
-		}
-	}
-}
-
-void AstarScene::UpdateTargetPos(AstarTile* currTile)
-{
-	enemyDestTile = currTile;/*&(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);*/
-	//destTile->SetColor(RGB(0, 0, 255));
-	//enemyDestTile->SetType(AstarTileType::End);
-}
-
 bool AstarScene::EnemyCanGo(AstarTile* nextTile)
 {
 	//타일타입이 벽이면 false
@@ -710,6 +660,7 @@ void AstarScene::Hunting()
 	else
 	{
 		// Follow();
+
 		enemyMoving = true;
 		isAttack = false;
 	}
@@ -717,7 +668,7 @@ void AstarScene::Hunting()
 
 bool AstarScene::CanAttack()
 {
-	if (enemyDestTile->enemyParentTile == enemyCurrTile)
+	if (enemyDestTile == enemyCurrTile)
 		return true;
 	return false;
 }

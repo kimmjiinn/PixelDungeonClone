@@ -102,13 +102,10 @@ public:
 	void EnemyFindPath();
 	void EnemyPrintPath();
 	void AddEnemyOpenList(AstarTile* currTile);
-	void SetTarget(Player* player);
-	void LookAround();
-	void UpdateTargetPos(AstarTile* currTile);
 	bool EnemyCanGo(AstarTile* nextTile);
 	void EnemyReset();
 
-	//
+	// AI
 	void Act();
 	bool CanSee();
 	void Hunting();
