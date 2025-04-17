@@ -134,55 +134,55 @@ void Image::Render(HDC hdc, int destX, int destY)
     }
 }
 
-void Image::Render(HDC hdc, int destX, int destY, int frameIndex, bool isFlip)
-{
-    imageInfo->currFrameX = frameIndex;
-
-    if (isFlip && isTransparent)
-    {
-        StretchBlt(imageInfo->hTempDC, 0, 0,
-            imageInfo->frameWidth, imageInfo->frameHeight,
-            imageInfo->hMemDC,
-            (imageInfo->frameWidth * imageInfo->currFrameX) + (imageInfo->frameWidth - 1),
-            imageInfo->frameHeight * imageInfo->currFrameY,
-            -imageInfo->frameWidth, imageInfo->frameHeight,
-            SRCCOPY
-        );
-
-        GdiTransparentBlt(hdc,
-            destX, destY,
-            imageInfo->frameWidth, imageInfo->frameHeight,
-
-            imageInfo->hTempDC,
-            0, 0,
-            imageInfo->frameWidth, imageInfo->frameHeight,
-            transColor);
-    }
-    else if (isTransparent)
-    {
-        GdiTransparentBlt(hdc,
-            destX, destY,
-            imageInfo->frameWidth, imageInfo->frameHeight,
-
-            imageInfo->hMemDC,
-            imageInfo->frameWidth * imageInfo->currFrameX,
-            imageInfo->frameHeight * imageInfo->currFrameY,
-            imageInfo->frameWidth, imageInfo->frameHeight,
-            transColor);
-    }
-    else
-    {
-        BitBlt(
-            hdc,
-            destX, destY,
-            imageInfo->width / 9,
-            imageInfo->height,
-            imageInfo->hMemDC,
-            imageInfo->width / 9 * frameIndex, 0,
-            SRCCOPY
-        );
-    }
-}
+// void Image::Render(HDC hdc, int destX, int destY, int frameIndex, bool isFlip)
+// {
+//     imageInfo->currFrameX = frameIndex;
+//
+//     if (isFlip && isTransparent)
+//     {
+//         StretchBlt(imageInfo->hTempDC, 0, 0,
+//             imageInfo->frameWidth, imageInfo->frameHeight,
+//             imageInfo->hMemDC,
+//             (imageInfo->frameWidth * imageInfo->currFrameX) + (imageInfo->frameWidth - 1),
+//             imageInfo->frameHeight * imageInfo->currFrameY,
+//             -imageInfo->frameWidth, imageInfo->frameHeight,
+//             SRCCOPY
+//         );
+//
+//         GdiTransparentBlt(hdc,
+//             destX, destY,
+//             imageInfo->frameWidth, imageInfo->frameHeight,
+//
+//             imageInfo->hTempDC,
+//             0, 0,
+//             imageInfo->frameWidth, imageInfo->frameHeight,
+//             transColor);
+//     }
+//     else if (isTransparent)
+//     {
+//         GdiTransparentBlt(hdc,
+//             destX, destY,
+//             imageInfo->frameWidth, imageInfo->frameHeight,
+//
+//             imageInfo->hMemDC,
+//             imageInfo->frameWidth * imageInfo->currFrameX,
+//             imageInfo->frameHeight * imageInfo->currFrameY,
+//             imageInfo->frameWidth, imageInfo->frameHeight,
+//             transColor);
+//     }
+//     else
+//     {
+//         BitBlt(
+//             hdc,
+//             destX, destY,
+//             imageInfo->width / 9,
+//             imageInfo->height,
+//             imageInfo->hMemDC,
+//             imageInfo->width / 9 * frameIndex, 0,
+//             SRCCOPY
+//         );
+//     }
+// }
 
 void Image::FrameRender(HDC hdc, int destX, int destY, 
     int frameX, int frameY, bool isFlip, bool isCenter)
