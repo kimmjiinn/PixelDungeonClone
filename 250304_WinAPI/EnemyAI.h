@@ -5,18 +5,6 @@
 class Enemy;
 class Acting;
 
-struct Node
-{
-	POINT pos;      // center값으로 보정하기.
-	float costFromStart;
-	float costToGoal;
-	float totalCost;
-
-	Node* parentTile;
-
-	// pos 범위: (ASTAR_TILE_SIZE / 2) ~ ASTAR_TILE_COUNT * ASTAR_TILE_SIZE + (ASTAR_TILE_SIZE / 2)
-};
-
 class AI
 {
 private:
@@ -26,13 +14,6 @@ private:
 	vector<Acting*> vecAiSelector;
 	Acting* aiCurrState;
 	Enemy* enemy;
-
-	Node* startTile;
-	Node* destTile;
-	Node* currTile;
-
-	vector<POINT> openList;
-
 
 public:
 	AI(Enemy* enemy) : enemy(enemy) {};

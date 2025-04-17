@@ -22,7 +22,6 @@ HRESULT AI::Init()
         vecAiSelector[(int)Selector::Hunting]->Init();
         vecAiSelector[(int)Selector::Wandering]->Init();
 
-        aiCurrState = vecAiSelector[1];
         return S_OK;
     }
 
@@ -36,6 +35,10 @@ void AI::Release()
 void AI::Update()
 {
     // 같은 스테이트면 유지시키다가 바뀌어야 하는 순간에 바꿈
+    
+    
+
+
 }
 
 void AI::Render(HDC hdc)
@@ -44,11 +47,17 @@ void AI::Render(HDC hdc)
 
 bool AI::CanSee()   // Fov
 {
+
     return false;   // 볼 수 없다.
 }
 
 bool AI::Act(bool enemyInFov, bool justAlerted)
 {
+    if (justAlerted)
+    {
+        vecAiSelector[(int)Selector::Hunting]->act(aiStatus);
+    }
+
     if (CanSee())   // 시야에 보임
     {
         vecAiSelector[(int)Selector::Hunting]->act(aiStatus);
@@ -65,7 +74,7 @@ AI::~AI()
 {
 }
 
-//
+// Acting
 HRESULT Acting::Init()
 {
     return E_NOTIMPL;
@@ -175,6 +184,7 @@ bool Wandering::RandomDestination()
 
 void Wandering::Move()
 {
+
 }
 
 void Wandering::Sleep()
