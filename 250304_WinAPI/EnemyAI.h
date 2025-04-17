@@ -11,7 +11,7 @@ private:
 	bool enemyInFov;
 	bool justAlerted;
 	string aiStatus;
-	vector<Acting*> vecAiSelector;
+	vector<Acting*> vecAISelector;
 	Acting* aiCurrState;
 	Enemy* enemy;
 
@@ -26,6 +26,9 @@ public:
 	bool CanSee();
 	bool Act(bool enemyInFov, bool justAlerted);		// execution, leaf
 //이 act에서 두 bool값으로 어떤 행동을 취할지 결정(시야 안/인식)
+
+	//POINT GetEnemyCurrPos() { return enemy->GetPos(); }
+	//void SetEnemyDestPos(POINT pos) { enemy->SetDestPos(pos); }
 	~AI();
 };
 
@@ -38,7 +41,7 @@ public:
 	virtual void Render(HDC hdc);
 
 	Acting() {};
-	virtual bool act(string &status) = 0;
+	virtual bool Act(string &status) = 0;
 	virtual ~Acting() {};
 };
 
@@ -58,7 +61,7 @@ public:
 	virtual void Render(HDC hdc) override;
 
 	Hunting() {};
-	virtual bool act(string& status) override;
+	virtual bool Act(string& status) override;
 
 	bool CanAttack();
 	void Follow();	// 도착지가 플레이어의 위치
@@ -82,7 +85,7 @@ public:
 	virtual void Render(HDC hdc) override;
 
 	Wandering() {};
-	virtual bool act(string& status) override;
+	virtual bool Act(string& status) override;
 
 	bool RandomDestination();
 	void Move();
