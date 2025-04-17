@@ -27,6 +27,10 @@ using namespace std;
 #include "TimerManager.h"
 #include "SceneManager.h"
 
+
+#include <cstdlib>
+#include <ctime>
+
 /*
 	컴파일러에서 해당 코드를 뒤에 정의된 코드로 변경한다. 
 */
@@ -84,4 +88,5 @@ enum Dir
 	DIR_LEFT,
 	DIR_RIGHT,
 };
+
 
