@@ -108,6 +108,16 @@ public:
 	bool EnemyCanGo(AstarTile* nextTile);
 	void EnemyReset();
 
+	//
+	void Act();
+	bool CanSee();
+	void Hunting();
+	bool CanAttack();
+	void Wandering();
+	void SetEnemyFov();		// 우선은 Astar에서 설정
+	AstarTile* RandomDestination();
+	
+private:
 	float currTime = 1.f;
 	vector<POINT> path;
 	int pathIdx = 0;
@@ -141,6 +151,10 @@ public:
 
 	vector<AstarTile*> enemyOpenList;
 	vector<AstarTile*> enemyCloseList;
+
+	//
+	vector<AstarTile*> enemyFovList;
+	bool isAttack = false;
 
 private:
 	Player* player;

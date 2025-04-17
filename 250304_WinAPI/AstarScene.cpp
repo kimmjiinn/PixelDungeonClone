@@ -67,6 +67,8 @@ void AstarTile::SetColor(COLORREF color)
 
 HRESULT AstarScene::Init()
 {
+	srand(unsigned(time(0)));
+
 	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// 세로반복 (y)
 	{
 		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// 가로반복 (x)
@@ -81,8 +83,11 @@ HRESULT AstarScene::Init()
 
 	currTile = startTile;
 
+	destTile = &(map[10][10]);
+
 	player = new Player({startTile->center.x, startTile->center.y});
 	player->Init();
+
 
 	// enemy
 	enemyStartTile = &(map[18][5]);
@@ -144,6 +149,12 @@ void AstarScene::Release()
 
 void AstarScene::Update()
 {
+	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
+	{
+		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
+
+	}
+
 	float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
 	//디버깅용 색 초기화
 	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
@@ -184,7 +195,7 @@ void AstarScene::Update()
 			}
 		}
 	}
-	startTile->SetColor(RGB(0, 0, 255));
+	startTile->SetColor(RGB(0, 0, 255));	// 플레이어
 
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
 	{
@@ -231,6 +242,8 @@ void AstarScene::Update()
 			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
 			currTime = 0;
 			pathIdx++;
+
+			Act();	// enemy 도착지 세팅, enemyMoving 세팅
 		}
 	}
 
@@ -243,30 +256,20 @@ void AstarScene::Update()
 	if (destTile) destTile->SetColor(RGB(255, 0, 0));
 
 
-	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
-	{
-		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
-
-	}
 		// enemy
 
 		if (enemy)
 		{
-			if (!isTarget)
-			{
-				LookAround();
-			}
-			if (target)
-			{
-				UpdateTargetPos(currTile);
-			}
+			//if (!isTarget)
+			//{
+			//	LookAround();
+			//}
+			//if (target)
+			//{
+			//	UpdateTargetPos(currTile);
+			//}
 
 			EnemyReset();
-			//enemyOpenList.clear();
-			//enemyCloseList.clear();
-			//enemyPath.clear();
-			//enemyPathIdx = 0;
-			//enemyStartTile = enemyCurrTile;
 
 			EnemyFindPath();
 
@@ -280,7 +283,11 @@ void AstarScene::Update()
 			}
 			else
 			{
-				enemyCurrTile->SetColor(RGB(200, 200, 20));
+				enemy->Update();
+			}
+			if (isAttack)
+			{
+				enemyCurrTile->SetColor(RGB(200, 200, 20));	// 노란색
 				enemy->Update();
 			}
 
@@ -664,3 +671,142 @@ void AstarScene::EnemyReset()
 
 	enemyPathIdx = 0;
 }
+
+// AI
+void AstarScene::Act()
+{
+	SetEnemyFov();	// 현재 위치 기준으로 시야 설정(24칸)
+
+	if (CanSee())	// 시야 안에 플레이어가 있으면
+	{
+		Hunting();
+	}
+	else
+	{
+		Wandering();	// 없으면 그냥 돌아다님
+	}
+}
+
+bool AstarScene::CanSee()
+{
+	auto it = find(enemyFovList.begin(), enemyFovList.end(), currTile);		// 플레이어 타일 발견
+	if (it == enemyFovList.end())
+		return false;
+	else
+		return true;
+}
+
+void AstarScene::Hunting()
+{
+	enemyDestTile = currTile;
+
+	if (CanAttack())
+	{
+		// Attack()
+		static int color = 0;	 // 맞는 거 표시(맞을수록 값이 커짐)
+		isAttack = true;
+		enemyMoving = false;
+	}
+	else
+	{
+		// Follow();
+		enemyMoving = true;
+		isAttack = false;
+	}
+}
+
+bool AstarScene::CanAttack()
+{
+	if (enemyDestTile->enemyParentTile == enemyCurrTile)
+		return true;
+	return false;
+}
+
+void AstarScene::Wandering()
+{
+	AstarTile* tempTile = RandomDestination();		// bool로 한다면, index값 참조로 넣어주고 true 반환할 때만 사용?
+	if (enemyCurrTile == tempTile)
+	{
+		// Sleep()
+		enemyMoving = false;
+	}
+	else
+	{
+		// Move()
+		enemyMoving = true;
+		enemyDestTile = tempTile;
+	}
+}
+
+void AstarScene::SetEnemyFov()
+{
+	if (!enemyFovList.empty())
+	{
+		enemyFovList.clear();
+	}
+	/*static const int dx[9] = { -1, 1, -1, 1, -1, 1, 0, 0, 0 };
+	static const int dy[9] = { -1, 1, 1, -1, 0, 0, -1, 1, 0 };*/
+
+	int dx[5] = { -2, -1, 0, 1, 2 };
+	int dy[5] = { -2, -1, 0, 1, 2 };
+
+	AstarTile* tempTile;
+
+
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			int nx = enemyCurrTile->idX + dx[j];
+			int ny = enemyCurrTile->idY + dy[i];
+
+			if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
+				ny < 0 || ny >= ASTAR_TILE_COUNT)
+				continue;
+
+			tempTile = &map[ny][nx];
+
+			if (EnemyCanGo(tempTile))
+			{
+				enemyFovList.push_back(tempTile);
+			}
+		}
+	}
+
+
+	/*for (int i = 0; i < 9; i++)
+	{
+		int nx = enemyCurrTile->idX + dx[i];
+		int ny = enemyCurrTile->idY + dy[i];
+
+		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
+			ny < 0 || ny >= ASTAR_TILE_COUNT)
+			continue;
+
+		tempTile = &map[ny][nx];
+
+		if (EnemyCanGo(tempTile))
+		{
+			enemyFovList.push_back(tempTile);
+		}
+	}*/
+}
+
+AstarTile* AstarScene::RandomDestination()
+{
+	int dx[9] = { -1, 1, -1, 1, -1, 1, 0, 0, 0 };
+	int dy[9] = { -1, 1, 1, -1, 0, 0, -1, 1, 0 };
+
+	int index = rand() % 9;
+
+	int nx = enemyCurrTile->idX + dx[index];
+	int ny = enemyCurrTile->idY + dy[index];
+
+	if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
+		ny < 0 || ny >= ASTAR_TILE_COUNT)
+		return enemyCurrTile;
+
+	return &map[ny][nx];
+}
+
+
