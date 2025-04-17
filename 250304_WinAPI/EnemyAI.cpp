@@ -1,6 +1,10 @@
 ﻿#include "EnemyAI.h"
 
-
+enum class Selector
+{
+    Hunting,
+    Wandering,
+};
 
 
 HRESULT AI::Init()
@@ -12,8 +16,11 @@ HRESULT AI::Init()
 
         aiStatus = "None";
         vecAiSelector.resize(2);
-        vecAiSelector[0] = new Hunting;
-        vecAiSelector[1] = new Wandering;
+        vecAiSelector[(int)Selector::Hunting] = new Hunting;
+        vecAiSelector[(int)Selector::Wandering] = new Wandering;
+
+        vecAiSelector[(int)Selector::Hunting]->Init();
+        vecAiSelector[(int)Selector::Wandering]->Init();
 
         aiCurrState = vecAiSelector[1];
         return S_OK;
@@ -35,22 +42,21 @@ void AI::Render(HDC hdc)
 {
 }
 
-bool AI::canAttack(Enemy* enemy)
+bool AI::CanSee()   // Fov
 {
-    // 이동할 수 있는 만큼 갔을 때 플레이어 타일까지 간다면 공격할 수 있다. 즉, 이동타일 범위 안에 플레이어가 있으면 공격 가능
-
-    return false;   // 공격할 수 없다.
-}
-
-bool AI::canSee()   // Fov
-{
-
     return false;   // 볼 수 없다.
 }
 
-bool AI::act(bool enemyInFov, bool justAlerted)     // 이 fov가 화면 fov인가..
+bool AI::Act(bool enemyInFov, bool justAlerted)
 {
-
+    if (CanSee())   // 시야에 보임
+    {
+        vecAiSelector[(int)Selector::Hunting]->act(aiStatus);
+    }
+    else
+    {
+        vecAiSelector[(int)Selector::Wandering]->act(aiStatus);
+    }
 
     return false;
 }
@@ -101,8 +107,28 @@ void Hunting::Render(HDC hdc)
 
 bool Hunting::act(string& status)
 {
-
+    if(CanAttack())
+    {
+        Attack();
+    }
+    else
+    {
+        Follow();
+    }
     return false;
+}
+
+bool Hunting::CanAttack()
+{
+    return false;
+}
+
+void Hunting::Follow()
+{
+}
+
+void Hunting::Attack()
+{
 }
 
 // Wandering
@@ -130,9 +156,29 @@ void Wandering::Render(HDC hdc)
 bool Wandering::act(string& status)
 {
    // 아무지점이나 목표로 잡아서 움직임
-
+    if (RandomDestination()) // true일 경우 제자리인 거임
+    {
+        Sleep();
+    }
+    else
+    {
+        Move();
+    }
 
     return true;
+}
+
+bool Wandering::RandomDestination()
+{
+    return false;
+}
+
+void Wandering::Move()
+{
+}
+
+void Wandering::Sleep()
+{
 }
 
 

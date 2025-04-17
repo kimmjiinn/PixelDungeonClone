@@ -31,19 +31,19 @@ private:
 	Node* destTile;
 	Node* currTile;
 
-	vector<Node*> openList;
-	vector<Node*> closeList;
+	vector<POINT> openList;
+
+
 public:
 	AI(Enemy* enemy) : enemy(enemy) {};
-
+	// 여기서 이동 가능 반경 설정-좌표로 받아오기.
 	HRESULT Init();
 	void Release();
 	void Update();
 	void Render(HDC hdc);
 
-	bool canAttack(Enemy* enemy);
-	bool canSee();
-	bool act(bool enemyInFov, bool justAlerted);		// execution, leaf
+	bool CanSee();
+	bool Act(bool enemyInFov, bool justAlerted);		// execution, leaf
 //이 act에서 두 bool값으로 어떤 행동을 취할지 결정(시야 안/인식)
 	~AI();
 };
@@ -78,6 +78,11 @@ public:
 
 	Hunting() {};
 	virtual bool act(string& status) override;
+
+	bool CanAttack();
+	void Follow();	// 도착지가 플레이어의 위치
+	void Attack();	// 플레이어가 이동 칸 안에 들어옴.
+
 	virtual ~Hunting() {};
 };
 
@@ -86,6 +91,7 @@ class Wandering: public Acting
 	// 주변에 타겟 없음
 	// 돌아다닌다
 	// 내비게이션 필요?
+	// 영역 정해서 그 중 아무데나 이동.(그냥 땅일때만 이동)
 public:
 	using Super = Acting;
 
@@ -96,6 +102,10 @@ public:
 
 	Wandering() {};
 	virtual bool act(string& status) override;
+
+	bool RandomDestination();
+	void Move();
+	void Sleep();
 	virtual ~Wandering() {};
 };
 

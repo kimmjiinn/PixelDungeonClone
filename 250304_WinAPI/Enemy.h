@@ -32,7 +32,5 @@ private:
 	ActState state = ActState::IDLE;
 	bool keyPressed = false;
 
-	bool isTarget = false;
-
 	AI* ai;
 };
