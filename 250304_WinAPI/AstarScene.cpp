@@ -1,670 +1,382 @@
 ﻿#include "AstarScene.h"
-
-#include "CommonFunction.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "TurnManager.h"
+#include "KeyManager.h"
+#include "TimerManager.h"
+#include "SceneManager.h"
 #include "config.h"
-
-HRESULT AstarTile::Init()
-{
-	return E_NOTIMPL;
-}
-
-HRESULT AstarTile::Init(int idX, int idY)
-{
-	SetClientRect(g_hWnd, WINSIZE_X, TILEMAPTOOL_Y);
-	
-	this->idX = idX;
-	this->idY = idY;
-
-	center.x = idX * ASTAR_TILE_SIZE + (ASTAR_TILE_SIZE / 2);
-	center.y = idY * ASTAR_TILE_SIZE + (ASTAR_TILE_SIZE / 2);
-
-	rc.left = idX * ASTAR_TILE_SIZE;
-	rc.right = rc.left + ASTAR_TILE_SIZE;
-	rc.top = idY * ASTAR_TILE_SIZE;
-	rc.bottom = rc.top + ASTAR_TILE_SIZE;
-
-	costFromStart = 0.0f;
-	costToGoal = 0.0f;
-	totalCost = 0.0f;
-
-	type = AstarTileType::None;
-
-	parentTile = nullptr;
-
-	//enemy
-	enemyParentTile = nullptr;
-
-
-	color = RGB(100, 100, 100);
-	hBrush = CreateSolidBrush(color);
-
-	return S_OK;
-}
-
-void AstarTile::Release()
-{
-	DeleteObject(hBrush);
-}
-
-void AstarTile::Update()
-{
-}
-
-void AstarTile::Render(HDC hdc)
-{
-	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-	FillRect(hdc, &rc, hBrush);
-	Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
-
-	SelectObject(hdc, hOldBrush);
-}
-
-void AstarTile::SetColor(COLORREF color)
-{
-	this->color = color;
-	DeleteObject(hBrush);
-
-	hBrush = CreateSolidBrush(color);
-}
 
 HRESULT AstarScene::Init()
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// 세로반복 (y)
-	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// 가로반복 (x)
-		{
-			map[i][j].Init(j, i);
-		}
-	}
-
-	startTile = &(map[3][3]);
-	startTile->SetColor(RGB(255, 0, 0));
-	startTile->SetType(AstarTileType::Start);
-
-	currTile = startTile;
-
-	player = new Player({startTile->center.x, startTile->center.y});
-	player->Init();
-
-	// enemy
-	enemyStartTile = &(map[18][5]);
-	enemyStartTile->SetColor(RGB(125, 0, 0));
-	enemyStartTile->SetType(AstarTileType::Start);
-
-	enemyCurrTile = enemyStartTile;
-
-	enemy = new Enemy({ enemyStartTile->center.x, enemyStartTile->center.y });
-	enemy->Init();
-	//isTarget = true;
-	//enemyMoving = true;
-	return S_OK;
+    // 컴포넌트 클래스 생성 및 초기화
+    tileMap = new TileMap();
+    tileMap->Init();
+    
+    camera = new Camera();
+    camera->Init(WINSIZE_X, WINSIZE_Y);
+    
+    pathFinder = new PathFinder();
+    pathFinder->Init(tileMap);
+    
+    // 플레이어 생성 및 초기화
+    AstarTile* startTile = tileMap->GetTile(3, 3);
+    player = new Player({startTile->GetCenter().x, startTile->GetCenter().y});
+    player->Init();
+    
+    // 적 생성 및 초기화
+    AstarTile* enemyStartTile = tileMap->GetTile(18, 5);
+    enemy = new Enemy({enemyStartTile->GetCenter().x, enemyStartTile->GetCenter().y});
+    enemy->Init();
+    
+    return S_OK;
 }
 
 void AstarScene::Release()
 {
-	//if (startTile)
-	//{
-	//	startTile->Release();
-	//	delete startTile;
-	//	startTile = nullptr;
-	//}
-	//if (destTile)
-	//{
-	//	destTile->Release();
-	//	delete destTile;
-	//	destTile = nullptr;
-	//}
-	//if (currTile)
-	//{
-	//	currTile->Release();
-	//	delete currTile;
-	//	currTile = nullptr;
-	//}
-
-	//for (auto tile : openList)
-	//{
-	//	if (tile)
-	//	{
-	//		tile->Release();
-	//		delete tile;
-	//	}
-	//}
-	//openList.clear();
-	//for (auto tile : closeList)
-	//{
-	//	if (tile)
-	//	{
-	//		tile->Release();
-	//		delete tile;
-	//	}
-	//}
-	//closeList.clear();
-	SAFE_DELETE(player);
-
-	SAFE_DELETE(enemy);
+    // // 메모리 해제
+    // SAFE_DELETE(player);
+    // SAFE_DELETE(enemy);
+    // SAFE_DELETE(pathFinder);
+    // SAFE_DELETE(camera);
+    // SAFE_DELETE(tileMap);
 }
 
 void AstarScene::Update()
 {
-	float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
-	//디버깅용 색 초기화
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
-	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)
-		{
-			map[i][j].costFromStart = 0;
-			map[i][j].costToGoal = 0;
-			map[i][j].totalCost = 0;
-			if (map[i][j].type == AstarTileType::None)
-				map[i][j].SetColor(RGB(100, 100, 100));
-			else if (map[i][j].type == AstarTileType::End)
-				map[i][j].SetColor(RGB(0, 0, 255));
-			else if (map[i][j].type == AstarTileType::Start)
-				map[i][j].SetColor(RGB(255, 0, 0));
-			else if (map[i][j].type == AstarTileType::Wall)
-				map[i][j].SetColor(RGB(100, 150, 100));
-		}
-	}
-
-	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
-	{
-		// g_ptMouse로 인덱스를 계산
-		int x, y;
-		x = g_ptMouse.x / ASTAR_TILE_SIZE;
-		y = g_ptMouse.y / ASTAR_TILE_SIZE;
-
-		if (0 <= x && x < ASTAR_TILE_COUNT &&
-			0 <= y && y < ASTAR_TILE_COUNT)
-		{
-			// 시작이나 목적지가 아닐 때
-			if (map[y][x].GetType() != AstarTileType::Start &&
-				map[y][x].GetType() != AstarTileType::End)
-			{
-				map[y][x].SetColor(RGB(100, 150, 100));
-				map[y][x].SetType(AstarTileType::Wall);
-
-			}
-		}
-	}
-	startTile->SetColor(RGB(0, 0, 255));
-
-	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
-	{
-		int idx = g_ptMouse.x / ASTAR_TILE_SIZE;
-		int idy = g_ptMouse.y / ASTAR_TILE_SIZE;
-
-		if (idx < 0 || idx >= ASTAR_TILE_COUNT || idy < 0 || idy >= ASTAR_TILE_COUNT)
-			return;
-
-		AstarTile* clickTile = &(map[idy][idx]);
-		//클릭한 타일이 벽이면 리턴
-		if (clickTile->GetType() == AstarTileType::Wall)
-			return;
-		// 기존 도착지 NoneType으로 리셋
-		if (destTile)
-			destTile->SetType(AstarTileType::None);
-		// 도착지를 클릭한 타일으로 갱신
-		destTile = clickTile;
-		destTile->SetType(AstarTileType::End);
-		moving = true;
-
-	}
-
-	Reset();
-
-	FindPath();
-	PrintPath();
-
-	if (moving)
-	{
-		if (path.empty())
-		{
-			return;
-		}
-		if (pathIdx >= path.size())
-		{
-			moving = false;
-			return;
-		}
-
-		currTime += deltaTime;
-		if (currTime >= 0.5f)
-		{
-			currTile = &map[path[pathIdx].y / ASTAR_TILE_SIZE][path[pathIdx].x / ASTAR_TILE_SIZE];
-			currTime = 0;
-			pathIdx++;
-		}
-	}
-
-	if (player)
-	{
-		player->SetPos(currTile->center);
-		player->Update();
-	}
-
-	if (destTile) destTile->SetColor(RGB(255, 0, 0));
-
-
-	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
-	{
-		SceneManager::GetInstance()->ChangeScene("전투씬_1");
-
-	}
-		// enemy
-
-		if (enemy)
-		{
-			if (!isTarget)
-			{
-				LookAround();
-			}
-			if (target)
-			{
-				UpdateTargetPos(currTile);
-			}
-
-			EnemyReset();
-			//enemyOpenList.clear();
-			//enemyCloseList.clear();
-			//enemyPath.clear();
-			//enemyPathIdx = 0;
-			//enemyStartTile = enemyCurrTile;
-
-			EnemyFindPath();
-
-			EnemyPrintPath();
-
-			// 위치 업데이트. 플레이어 위치와 같으면 위치 업데이트 안함.
-			if (enemyCurrTile != currTile)
-			{
-				enemy->SetPos(enemyCurrTile->center);
-				enemy->Update();
-			}
-			else
-			{
-				enemyCurrTile->SetColor(RGB(200, 200, 20));
-				enemy->Update();
-			}
-
-			if (enemyMoving)
-			{
-				if (enemyPathIdx >= enemyPath.size())
-				{
-					return;
-				}
-
-				enemyCurrTime += deltaTime;
-				if (enemyCurrTime >= 0.5f)
-				{
-					//currTile->SetColor(RGB(255, 0, 255));
-
-					enemyCurrTile = &map[enemyPath[enemyPathIdx].y / ASTAR_TILE_SIZE][enemyPath[enemyPathIdx].x / ASTAR_TILE_SIZE];
-					//currTile->SetColor(RGB(255, 0, 0));
-
-					enemyCurrTime = 0;
-					enemyPathIdx++;
-				}
-			}
-		}
+    float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
+    
+    // 타일맵 업데이트
+    tileMap->Update();
+    
+    // 입력 처리
+    ProcessInput();
+    
+    // 턴 기반 시스템 초기화 (첫 프레임에만)
+    if (!turnInitialized)
+    {
+        InitializeTurnSystem();
+        turnInitialized = true;
+    }
+    
+    // 플레이어 자동 이동 처리
+    if (moving)
+    {
+        if (path.empty() || pathIdx >= path.size())
+        {
+            moving = false;
+            return;
+        }
+        
+        // 이동 타이머 업데이트
+        moveTimer += deltaTime;
+        if (moveTimer >= 0.2f) // 이동 속도
+        {
+            // 다음 타일로 이동
+            POINT nextPos = path[pathIdx];
+            player->SetPos(nextPos);
+            
+            // 이동 후 턴 소모 처리
+            ProcessMovementTurn();
+            
+            // 타이머 리셋 및 다음 경로 인덱스로 이동
+            moveTimer = 0;
+            pathIdx++;
+        }
+    }
+    
+    // 플레이어 업데이트
+    if (player)
+    {
+        player->Update();
+        
+        // 카메라 위치 업데이트 (플레이어 중심)
+        camera->SetPosition(player->GetPos());
+    }
+    
+    // 적 업데이트
+    if (enemy)
+    {
+        // 플레이어 감지 로직
+        if (!isTarget)
+        {
+            LookAround();
+        }
+        
+        if (isTarget)
+        {
+            UpdateTargetPos();
+        }
+        
+        enemy->Update();
+    }
+    
+    // 카메라 업데이트
+    camera->Update();
 }
 
 void AstarScene::Render(HDC hdc)
 {
-	for (int i = 0; i < ASTAR_TILE_COUNT; i++)	// 세로반복 (y)
-	{
-		for (int j = 0; j < ASTAR_TILE_COUNT; j++)	// 가로반복 (x)
-		{
-			map[i][j].Render(hdc);
-		}
-	}
-	if (player)
-		player->Render(hdc);
-
-	if (enemy)
-		enemy->Render(hdc);
+    // 카메라 변환 적용
+    camera->SetViewport(hdc);
+    
+    // 타일맵 렌더링
+    tileMap->Render(hdc);
+    
+    // 플레이어와 적 렌더링
+    if (player)
+        player->Render(hdc);
+        
+    if (enemy)
+        enemy->Render(hdc);
+    
+    // 카메라 변환 해제 (UI 렌더링을 위해)
+    camera->ResetViewport(hdc);
+    
+    // UI 렌더링
+    wchar_t statusText[128];
+    wsprintf(statusText, L"턴 기반 시스템: %s", TurnManager::GetInstance()->IsActive() ? L"활성화" : L"비활성화");
+    TextOut(hdc, 10, 10, statusText, wcslen(statusText));
+    
+    wsprintf(statusText, L"카메라 줌: %.1f (마우스 휠로 조절)", camera->GetZoom());
+    TextOut(hdc, 10, 30, statusText, wcslen(statusText));
+    
+    wsprintf(statusText, L"마우스 좌클릭: 이동, 우클릭: 벽 생성, 드래그: 카메라 이동");
+    TextOut(hdc, 10, 50, statusText, wcslen(statusText));
 }
 
-FPOINT front[] =
+void AstarScene::ProcessInput()
 {
-	FPOINT{-1, 0},	    //UP 
-	FPOINT{0, -1},		//LEFT
-	FPOINT{1, 0},		//DOWN
-	FPOINT{0, 1},	   	//RIGHT
-	FPOINT{-1, -1},		//LEFT-UP
-	FPOINT{1, -1},		//LEFT-DOWN
-	FPOINT{1, 1},		//RIGHT-DOWN
-	FPOINT{-1, 1},		//RIGHT-UP
-};
-int cost[] =
-{
-	10,
-	10,
-	10,
-	10,
-	14,
-	14,
-	14,
-	14
-};
-
-void AstarScene::FindPath()
-{
-	if (!destTile)
-		return;
-	if (currTile)
-	{
-		if (currTile == destTile)
-		{
-			currTile = startTile;
-			currTile->SetType(AstarTileType::None);
-			return;
-		}
-		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
-		AddOpenList(currTile);
-
-		// 후보들 중 F값이 가장 작은 타일을 다음 currTile 선정
-		if (openList.empty())
-		{
-			moving = false;
-			currTile = startTile;
-			return;
-		}
-		sort(openList.begin(), openList.end(), [](AstarTile* t1, AstarTile* t2) {
-			return t1->totalCost > t2->totalCost;
-			});
-		AstarTile* nextTile = openList.back();
-		openList.pop_back();
-
-		currTile = nextTile;
-		// 반복
-		FindPath();
-	}
+    // 마우스 휠로 줌 조절
+    int mouseWheel = GetMouseWheelDelta();
+    if (mouseWheel != 0)
+    {
+        camera->Zoom(mouseWheel * 0.1f);
+    }
+    
+    // 마우스 드래그로 카메라 이동
+    if (IsMouseDragging())
+    {
+        POINT dragDelta = GetMouseDragDelta();
+        camera->Move(-dragDelta.x / camera->GetZoom(), -dragDelta.y / camera->GetZoom());
+    }
+    
+    // 마우스 우클릭으로 벽 생성
+    if (KeyManager::GetInstance()->IsStayKeyDown(VK_RBUTTON))
+    {
+        // 화면 좌표를 월드 좌표로 변환
+        POINT screenPos = { g_ptMouse.x, g_ptMouse.y };
+        POINT worldPos = camera->ScreenToWorld(screenPos);
+        
+        // 월드 좌표를 타일 인덱스로 변환
+        int tileX = worldPos.x / TILE_SIZE;
+        int tileY = worldPos.y / TILE_SIZE;
+        
+        // 타일 타입 변경
+        if (tileMap->GetTile(tileX, tileY))
+        {
+            tileMap->SetTileType(tileX, tileY, AstarTile::TileType::Wall);
+        }
+    }
+    
+    // 마우스 좌클릭으로 목적지 설정 및 자동 이동
+    if (KeyManager::GetInstance()->IsOnceKeyDown(VK_LBUTTON))
+    {
+        // 화면 좌표를 월드 좌표로 변환
+        POINT screenPos = { g_ptMouse.x, g_ptMouse.y };
+        POINT worldPos = camera->ScreenToWorld(screenPos);
+        
+        // 월드 좌표를 타일 인덱스로 변환
+        int tileX = worldPos.x / TILE_SIZE;
+        int tileY = worldPos.y / TILE_SIZE;
+        
+        // 목적지 타일 설정
+        AstarTile* clickTile = tileMap->GetTile(tileX, tileY);
+        if (clickTile && clickTile->GetType() != AstarTile::TileType::Wall)
+        {
+            // 목적지 설정
+            tileMap->SetDestTile(tileX, tileY);
+            
+            // 현재 플레이어 위치 타일 찾기
+            POINT playerPos = player->GetPos();
+            AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
+            
+            // 경로 찾기
+            path = pathFinder->FindPath(playerTile, clickTile);
+            
+            // 경로가 있으면 이동 시작
+            if (!path.empty())
+            {
+                moving = true;
+                pathIdx = 0;
+                moveTimer = 0;
+                
+                // 턴 기반 시스템 활성화
+                TurnManager::GetInstance()->StartTurn();
+            }
+        }
+    }
+    
+    // 턴 시작/종료 키
+    if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SPACE))
+    {
+        if (!TurnManager::GetInstance()->IsActive())
+        {
+            TurnManager::GetInstance()->StartTurn();
+        }
+        else
+        {
+            TurnManager::GetInstance()->EndTurn();
+        }
+    }
+    
+    // 씬 전환
+    if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
+    {
+        SceneManager::GetInstance()->ChangeScene("전투씬_1");
+    }
 }
 
-void AstarScene::AddOpenList(AstarTile* currTile)
+void AstarScene::InitializeTurnSystem()
 {
-	for (int i = 0; i < 8; ++i)
-	{
-		int nextX = currTile->idX + front[i].x;
-		int nextY = currTile->idY + front[i].y;
-
-		if (nextX < 0 || nextX >= ASTAR_TILE_COUNT)
-			continue;
-		if (nextY < 0 || nextY >= ASTAR_TILE_COUNT)
-			continue;
-
-		AstarTile* nextTile = &map[nextY][nextX];
-
-		if (!CanGo(nextTile))
-			continue;
-
-		auto it1 = find(closeList.begin(), closeList.end(), nextTile);
-		if (it1 != closeList.end())
-			continue;
-
-		int g = currTile->costFromStart + cost[i];
-		int h = 10 * sqrt((destTile->idX - nextTile->idX) * (destTile->idX - nextTile->idX)
-				+ (destTile->idY - nextTile->idY) * (destTile->idY - nextTile->idY));
-
-		auto it2 = find(openList.begin(), openList.end(), nextTile);
-		if (it2 != openList.end())
-		{
-			if ((*it2)->costFromStart > g)
-			{
-				(*it2)->costFromStart = g;
-				(*it2)->totalCost = (*it2)->costFromStart + h;
-				(*it2)->SetParent(currTile);
-			}
-		}
-		else			
-		{
-			nextTile->costFromStart = g;
-			nextTile->costToGoal = h;
-			nextTile->totalCost = g + h;
-			nextTile->SetParent(currTile);
-			openList.push_back(nextTile);
-		}
-		closeList.push_back(currTile);
-	}
+    // TurnManager 초기화
+    TurnManager::GetInstance()->ClearActors();
+    
+    // 플레이어와 적을 액터로 등록
+    TurnManager::GetInstance()->AddActor(player);
+    TurnManager::GetInstance()->AddActor(enemy);
+    
+    // 턴 시스템 비활성화 상태로 시작
+    TurnManager::GetInstance()->SetActive(false);
 }
 
-void AstarScene::PrintPath()
+void AstarScene::ProcessMovementTurn()
 {
-	if (!destTile)
-		return;
-
-	AstarTile* curr = destTile;
-	path.clear();
-
-	if (currTile == destTile->GetParent())
-		path.push_back({ curr->center.x, curr->center.y });	
-
-	while (curr != nullptr && curr != startTile)
-	{
-		if (!curr->parentTile)
-			break;
-
-		if (curr->parentTile->GetType() == AstarTileType::Wall)
-		{
-			path.clear();
-			destTile = nullptr;
-			break;
-		}
-
-		curr->SetColor(RGB(0, 0, 0));
-		curr = curr->parentTile;
-		path.push_back({ curr->center.x, curr->center.y });
-	}
-
-	if (!path.empty())
-	{
-		path.pop_back();
-	}
-	else
-	{
-		moving = false;
-	}
-
-	reverse(path.begin(), path.end());
+    // 플레이어 이동 시 턴 처리
+    // 플레이어가 한 타일 이동할 때마다 턴이 소모되고 적이 이동함
+    
+    // 적 AI 업데이트 (플레이어 이동 후)
+    if (enemy && isTarget)
+    {
+        // 적의 다음 위치 계산
+        UpdateTargetPos();
+        
+        // 플레이어 위치 타일 찾기
+        POINT playerPos = player->GetPos();
+        AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
+        
+        // 적 위치 타일 찾기
+        POINT enemyPos = enemy->GetPos();
+        AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
+        
+        // 경로 찾기
+        std::vector<POINT> enemyPath = pathFinder->FindPath(enemyTile, playerTile);
+        
+        // 적 이동 (첫 번째 경로 지점으로)
+        if (!enemyPath.empty())
+        {
+            enemy->SetPos(enemyPath[0]);
+        }
+    }
 }
 
-bool AstarScene::CanGo(AstarTile* nextTile)
+int AstarScene::GetMouseWheelDelta()
 {
-	//타일타입이 벽이면 false
-	if (nextTile->GetType() == AstarTileType::Wall)
-		return false;
-
-	//주변 벽이면 대각이동 X
-	int dx = nextTile->idX - currTile->idX;
-	int dy = nextTile->idY - currTile->idY;
-
-	if (map[currTile->idY + dy][currTile->idX].type == AstarTileType::Wall
-		&& map[currTile->idY][currTile->idX + dx].type == AstarTileType::Wall)
-		return false;
-
-	return true;
+    // 마우스 휠 델타 값 반환 (실제 구현에서는 윈도우 메시지 처리 필요)
+    // 임시 구현: Q/E 키로 대체
+    if (KeyManager::GetInstance()->IsOnceKeyDown('Q'))
+        return -1;
+    else if (KeyManager::GetInstance()->IsOnceKeyDown('E'))
+        return 1;
+    return 0;
 }
 
-
-void AstarScene::Reset()
+bool AstarScene::IsMouseDragging()
 {
-	startTile->SetType(AstarTileType::None);
-	if (destTile) destTile->SetType(AstarTileType::None);
-	startTile = currTile;
-	currTile->SetType(AstarTileType::Start);
-
-	openList.clear();
-	closeList.clear();
-	path.clear();
-
-	pathIdx = 0;
+    // 마우스 드래그 여부 반환 (실제 구현에서는 윈도우 메시지 처리 필요)
+    // 임시 구현: 마우스 중간 버튼 클릭으로 대체
+    return KeyManager::GetInstance()->IsStayKeyDown(VK_MBUTTON);
 }
 
-void AstarScene::EnemyFindPath()
+POINT AstarScene::GetMouseDragDelta()
 {
-	if (!enemyDestTile)
-		return;
-	if (enemyCurrTile)
-	{
-		if (enemyCurrTile == enemyDestTile)
-		{
-			enemyCurrTile = enemyStartTile;
-			return;
-		}
-		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
-		AddOpenList(enemyCurrTile);
-
-		// 후보들 중 F값이 가장 작은 타일을 다음 currTile 선정
-		if (enemyOpenList.empty())
-			return;
-		sort(enemyOpenList.begin(), enemyOpenList.end(), [](AstarTile* t1, AstarTile* t2) {
-			return t1->enemyTotalCost > t2->enemyTotalCost;
-			});
-		AstarTile* nextTile = enemyOpenList.back();
-		enemyOpenList.pop_back();
-
-		enemyCurrTile = nextTile;
-		// 반복
-		EnemyFindPath();
-
-	}
-}
-
-void AstarScene::EnemyPrintPath()
-{
-	if (!enemyDestTile)
-		return;
-	AstarTile* eCurr = enemyDestTile;
-	enemyPath.clear();
-
-	//if (enemyCurrTile == enemyDestTile->GetEnemyParent())
-		enemyPath.push_back({ eCurr->center.x, eCurr->center.y });
-
-	while (eCurr != nullptr && eCurr != enemyStartTile)
-	{
-
-		if (!eCurr->enemyParentTile)
-			return;
-		//curr->SetColor(RGB(0, 0, 0));
-		eCurr = eCurr->enemyParentTile;
-		enemyPath.push_back({ eCurr->center.x, eCurr->center.y });
-	}
-	enemyPath.pop_back();
-	reverse(enemyPath.begin(), enemyPath.end());
-}
-
-void AstarScene::AddEnemyOpenList(AstarTile* currTile)
-{
-	for (int i = 0; i < 8; ++i)
-	{
-		int nextX = enemyCurrTile->idX + front[i].x;
-		int nextY = enemyCurrTile->idY + front[i].y;
-
-		if (nextX < 0 || nextX >= ASTAR_TILE_COUNT)
-			continue;
-		if (nextY < 0 || nextY >= ASTAR_TILE_COUNT)
-			continue;
-
-		AstarTile* nextTile = &map[nextY][nextX];
-
-		if (!EnemyCanGo(nextTile))
-			continue;
-
-		auto it1 = find(enemyCloseList.begin(), enemyCloseList.end(), nextTile);
-		if (it1 != enemyCloseList.end())
-			continue;
-
-		int g = enemyCurrTile->enemyCostFromStart + cost[i];
-		int h = 10 * sqrt((enemyDestTile->idX - nextTile->idX) * (enemyDestTile->idX - nextTile->idX)
-			+ (enemyDestTile->idY - nextTile->idY) * (enemyDestTile->idY - nextTile->idY));
-
-		auto it2 = find(enemyOpenList.begin(), enemyOpenList.end(), nextTile);
-		if (it2 != enemyOpenList.end())
-		{
-			if ((*it2)->enemyCostFromStart > g)
-			{
-				(*it2)->enemyCostFromStart = g;
-				(*it2)->enemyTotalCost = (*it2)->enemyCostFromStart + h;
-				(*it2)->SetEnemyParent(currTile);
-			}
-		}
-		else
-		{
-			nextTile->enemyCostFromStart = g;
-			nextTile->enemyCostToGoal = h;
-			nextTile->enemyTotalCost = g + h;
-			nextTile->SetEnemyParent(currTile);
-			//nextTile->SetColor(RGB(128, 128, 128));
-			enemyOpenList.push_back(nextTile);
-		}
-		enemyCloseList.push_back(currTile);
-	}
-}
-
-void AstarScene::SetTarget(Player *player)
-{
-	target = player;
-	enemyMoving = true;
-	//enemyDestTile = &(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);
-	enemyDestTile = currTile;
+    // 마우스 드래그 델타 값 반환 (실제 구현에서는 윈도우 메시지 처리 필요)
+    // 임시 구현: 고정 값 반환
+    POINT delta = { 0, 0 };
+    if (KeyManager::GetInstance()->IsStayKeyDown(VK_LEFT))
+        delta.x = -5;
+    else if (KeyManager::GetInstance()->IsStayKeyDown(VK_RIGHT))
+        delta.x = 5;
+    
+    if (KeyManager::GetInstance()->IsStayKeyDown(VK_UP))
+        delta.y = -5;
+    else if (KeyManager::GetInstance()->IsStayKeyDown(VK_DOWN))
+        delta.y = 5;
+    
+    return delta;
 }
 
 void AstarScene::LookAround()
 {
-	static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
-	static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
-
-	for (int i = 0; i < 8; i++)
-	{
-		int nx = enemyCurrTile->idX + dx[i];
-		int ny = enemyCurrTile->idY + dy[i];
-
-		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
-			ny < 0 || ny >= ASTAR_TILE_COUNT)
-			continue;
-
-		if ((map[ny][nx].center.x == player->GetPos().x) && (map[ny][nx].center.y == player->GetPos().y))
-		{
-			SetTarget(player);
-			break;
-		}
-	}
+    // 적이 플레이어를 감지하는 로직
+    static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
+    static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
+    
+    // 적 위치 타일 찾기
+    POINT enemyPos = enemy->GetPos();
+    AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
+    
+    if (!enemyTile)
+        return;
+        
+    // 주변 8방향 탐색
+    for (int i = 0; i < 8; i++)
+    {
+        int nx = enemyTile->GetIdX() + dx[i];
+        int ny = enemyTile->GetIdY() + dy[i];
+        
+        AstarTile* nearTile = tileMap->GetTile(nx, ny);
+        if (!nearTile)
+            continue;
+            
+        // 플레이어 위치 타일 찾기
+        POINT playerPos = player->GetPos();
+        AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
+        
+        if (playerTile && nearTile == playerTile)
+        {
+            isTarget = true;
+            break;
+        }
+    }
 }
 
-void AstarScene::UpdateTargetPos(AstarTile* currTile)
+void AstarScene::UpdateTargetPos()
 {
-	enemyDestTile = currTile;/*&(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);*/
-	//destTile->SetColor(RGB(0, 0, 255));
-	//enemyDestTile->SetType(AstarTileType::End);
-}
-
-bool AstarScene::EnemyCanGo(AstarTile* nextTile)
-{
-	//타일타입이 벽이면 false
-	if (nextTile->GetType() == AstarTileType::Wall)
-		return false;
-	//주변 벽이면 대각이동 X
-	int dx = nextTile->idX - enemyCurrTile->idX;
-	int dy = nextTile->idY - enemyCurrTile->idY;
-
-	if (map[enemyCurrTile->idY + dy][enemyCurrTile->idX].type == AstarTileType::Wall
-		&& map[enemyCurrTile->idY][enemyCurrTile->idX + dx].type == AstarTileType::Wall)
-		return false;
-	return true;
-}
-
-void AstarScene::EnemyReset()
-{
-	enemyStartTile->SetType(AstarTileType::None);
-	if (enemyDestTile) enemyDestTile->SetType(AstarTileType::None);
-	enemyStartTile = enemyCurrTile;
-	enemyCurrTile->SetType(AstarTileType::Start);
-
-	enemyOpenList.clear();
-	enemyCloseList.clear();
-	enemyPath.clear();
-
-	enemyPathIdx = 0;
+    // 적의 목표 위치 업데이트 (플레이어 위치)
+    if (!isTarget || !player)
+        return;
+        
+    // 플레이어 위치 타일 찾기
+    POINT playerPos = player->GetPos();
+    AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
+    
+    if (playerTile)
+    {
+        // 적 위치 타일 찾기
+        POINT enemyPos = enemy->GetPos();
+        AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
+        
+        if (enemyTile)
+        {
+            // 경로 찾기
+            std::vector<POINT> enemyPath = pathFinder->FindPath(enemyTile, playerTile);
+            
+            // 적 이동 (첫 번째 경로 지점으로)
+            if (!enemyPath.empty())
+            {
+                enemy->SetPos(enemyPath[0]);
+            }
+        }
+    }
 }

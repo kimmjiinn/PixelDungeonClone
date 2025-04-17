@@ -9,12 +9,12 @@ class Enemy: public Actor
 public:
 	using Super = Actor;
 	Enemy(POINT pos);
-	virtual ~Enemy();
+	virtual ~Enemy() override;
 
 	virtual HRESULT Init() override;
-	virtual void Release();
-	virtual void Update();
-	virtual void Render(HDC hdc);
+	virtual void Release() override;
+	virtual void Update() override;
+	virtual void Render(HDC hdc) override;
 
 	void SetState(ActState state);
 	void SetDir(Dir dir);
@@ -23,8 +23,8 @@ public:
 	void UpdateAnimation();
 
 	void Move() override;
-	void TakeTurn();
-
+	void TakeTurn() override;
+	POINT GetPos() { return pos; }
 
 private:
 	Image* imageIdle[4] = {};
@@ -37,4 +37,5 @@ private:
 	bool keyPressed = false;
 
 	AI* ai;
+	const int ASTAR_TILE_SIZE = 30;
 };

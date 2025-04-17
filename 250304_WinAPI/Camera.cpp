@@ -1,284 +1,132 @@
 ﻿#include "Camera.h"
-#include "DungeonTilemap.h"
-#include "Player.h"
-#include "KeyManager.h"
 
 Camera::Camera()
-    : zoom(1.0f)
-    , tilemap(nullptr)
-    , player(nullptr)
-    , isFollowingPlayer(true)
-    , moveSpeed(5.0f)
-    , zoomSpeed(0.1f)
-    , targetZoom(1.0f)
+    : zoom(1.0f), minZoom(0.5f), maxZoom(2.0f)
 {
-    position = { 0, 0 };
-    targetPosition = { 0, 0 };
+    position.x = 0;
+    position.y = 0;
+    screenWidth = 800;  // 기본값
+    screenHeight = 600; // 기본값
 }
 
 Camera::~Camera()
 {
-    Release();
+    // 특별히 해제할 자원 없음
 }
 
-HRESULT Camera::Init()
+void Camera::Init(int screenWidth, int screenHeight)
 {
-    // 초기 설정
+    this->screenWidth = screenWidth;
+    this->screenHeight = screenHeight;
+    
+    // 기본 위치는 화면 중앙
+    position.x = screenWidth / 2;
+    position.y = screenHeight / 2;
+    
+    // 기본 줌 레벨
     zoom = 1.0f;
-    targetZoom = 1.0f;
-    isFollowingPlayer = true;
-    moveSpeed = 5.0f;
-    zoomSpeed = 0.2f;
-    
-    // 초기 위치는 맵 중앙
-    if (tilemap)
-    {
-        position.x = tilemap->GetMapWidth() / 2;
-        position.y = tilemap->GetMapHeight() / 2;
-    }
-    else
-    {
-        position = { 0, 0 };
-    }
-    
-    targetPosition = position;
-    
-    return S_OK;
-}
-
-void Camera::Release()
-{
-    // 참조만 하므로 해제할 것 없음
-    tilemap = nullptr;
-    player = nullptr;
 }
 
 void Camera::Update()
 {
-    // 플레이어 추적
-    if (isFollowingPlayer && player)
-    {
-        targetPosition = player->GetPos();
-    }
-    
-    // 키보드 입력으로 카메라 이동
-    if (KeyManager::GetInstance()->IsStayKeyDown(VK_LEFT))
-    {
-        targetPosition.x -= 1;
-    }
-    else if (KeyManager::GetInstance()->IsStayKeyDown(VK_RIGHT))
-    {
-        targetPosition.x += 1;
-    }
-    
-    if (KeyManager::GetInstance()->IsStayKeyDown(VK_UP))
-    {
-        targetPosition.y -= 1;
-    }
-    else if (KeyManager::GetInstance()->IsStayKeyDown(VK_DOWN))
-    {
-        targetPosition.y += 1;
-    }
-    
-    // 키보드 입력으로 카메라 줌
-    if (KeyManager::GetInstance()->IsOnceKeyDown(VK_ADD) || 
-        KeyManager::GetInstance()->IsOnceKeyDown(VK_OEM_PLUS))
-    {
-        targetZoom += zoomSpeed;
-    }
-    else if (KeyManager::GetInstance()->IsOnceKeyDown(VK_SUBTRACT) || 
-             KeyManager::GetInstance()->IsOnceKeyDown(VK_OEM_MINUS))
-    {
-        targetZoom -= zoomSpeed;
-    }
-    
-    // 마우스 휠 입력 처리 (WM_MOUSEWHEEL 메시지는 MainProc에서 처리)
-    // 이 부분은 MainGame.cpp의 MainProc 함수에서 구현됩니다
-    
-    // 줌 레벨 제한 (0.5 ~ 2.0)
-    targetZoom = max(0.5f, min(2.0f, targetZoom));
-    
-    // 부드러운 카메라 이동
-    float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
-    
-    // 위치 보간
-    position.x += (targetPosition.x - position.x) * moveSpeed * deltaTime;
-    position.y += (targetPosition.y - position.y) * moveSpeed * deltaTime;
-    
-    // 줌 보간
-    zoom += (targetZoom - zoom) * zoomSpeed * 10.0f * deltaTime;
-    
-    // 맵 범위 제한
-    if (tilemap)
-    {
-        int mapWidth = tilemap->GetMapWidth();
-        int mapHeight = tilemap->GetMapHeight();
-        
-        position.x = max(0, min(mapWidth - 1, position.x));
-        position.y = max(0, min(mapHeight - 1, position.y));
-    }
-    
-    // 타일맵에 카메라 정보 업데이트
-    if (tilemap)
-    {
-        tilemap->SetCameraPos(position.x, position.y);
-        tilemap->SetCameraZoom(zoom);
-    }
+    // 현재는 업데이트할 내용 없음
 }
 
-void Camera::SetTilemap(DungeonTilemap* tilemap)
+void Camera::SetViewport(HDC hdc)
 {
-    this->tilemap = tilemap;
+    // 카메라 변환 적용 (줌 및 위치)
+    // WinAPI에서 카메라 효과를 구현하기 위해 SetViewportOrgEx와 SetMapMode 사용
     
-    // 타일맵이 설정되면 카메라 위치도 업데이트
-    if (tilemap)
-    {
-        position.x = tilemap->GetMapWidth() / 2;
-        position.y = tilemap->GetMapHeight() / 2;
-        targetPosition = position;
-    }
+    // 현재 뷰포트 설정 저장
+    SaveDC(hdc);
+    
+    // 뷰포트 원점 설정 (카메라 중심을 화면 중앙으로)
+    int centerX = screenWidth / 2;
+    int centerY = screenHeight / 2;
+    
+    // 카메라 위치를 고려한 오프셋 계산
+    int offsetX = centerX - (int)(position.x * zoom);
+    int offsetY = centerY - (int)(position.y * zoom);
+    
+    // 뷰포트 원점 설정
+    SetViewportOrgEx(hdc, offsetX, offsetY, NULL);
+    
+    // 줌 효과를 위한 매핑 모드 설정
+    SetMapMode(hdc, MM_ISOTROPIC);
+    
+    // 논리적 윈도우 크기 설정
+    SetWindowExtEx(hdc, screenWidth, screenHeight, NULL);
+    
+    // 뷰포트 크기 설정 (줌 적용)
+    SetViewportExtEx(hdc, (int)(screenWidth * zoom), (int)(screenHeight * zoom), NULL);
 }
 
-void Camera::SetPlayer(Player* player)
+void Camera::ResetViewport(HDC hdc)
 {
-    this->player = player;
-    
-    // 플레이어가 설정되면 카메라 위치도 업데이트
-    if (player && isFollowingPlayer)
-    {
-        position = player->GetPos();
-        targetPosition = position;
-    }
-}
-
-void Camera::SetPosition(int x, int y)
-{
-    position.x = x;
-    position.y = y;
-    targetPosition = position;
-    
-    // 맵 범위 제한
-    if (tilemap)
-    {
-        int mapWidth = tilemap->GetMapWidth();
-        int mapHeight = tilemap->GetMapHeight();
-        
-        position.x = max(0, min(mapWidth - 1, position.x));
-        position.y = max(0, min(mapHeight - 1, position.y));
-        targetPosition = position;
-    }
-    
-    // 타일맵에 카메라 정보 업데이트
-    if (tilemap)
-    {
-        tilemap->SetCameraPos(position.x, position.y);
-    }
-}
-
-void Camera::SetPosition(POINT pos)
-{
-    SetPosition(pos.x, pos.y);
-}
-
-void Camera::Move(int deltaX, int deltaY)
-{
-    targetPosition.x += deltaX;
-    targetPosition.y += deltaY;
-    
-    // 플레이어 추적 중이면 추적 해제
-    if (deltaX != 0 || deltaY != 0)
-    {
-        isFollowingPlayer = false;
-    }
+    // 카메라 변환 초기화 (저장된 DC 상태로 복원)
+    RestoreDC(hdc, -1);
 }
 
 void Camera::SetZoom(float zoom)
 {
-    this->zoom = max(0.5f, min(2.0f, zoom));
-    targetZoom = this->zoom;
-    
-    // 타일맵에 카메라 정보 업데이트
-    if (tilemap)
-    {
-        tilemap->SetCameraZoom(this->zoom);
-    }
+    // 줌 레벨 제한
+    if (zoom < minZoom)
+        this->zoom = minZoom;
+    else if (zoom > maxZoom)
+        this->zoom = maxZoom;
+    else
+        this->zoom = zoom;
 }
 
-void Camera::ChangeZoom(float deltaZoom)
+void Camera::Move(int deltaX, int deltaY)
 {
-    targetZoom += deltaZoom;
-    targetZoom = max(0.5f, min(2.0f, targetZoom));
+    // 카메라 이동
+    position.x += deltaX;
+    position.y += deltaY;
 }
 
-void Camera::SetFollowPlayer(bool follow)
+void Camera::Zoom(float deltaZoom)
 {
-    isFollowingPlayer = follow;
-    
-    // 플레이어 추적 설정 시 바로 플레이어 위치로 이동
-    if (isFollowingPlayer && player)
-    {
-        targetPosition = player->GetPos();
-    }
-}
-
-POINT Camera::WorldToScreen(int worldX, int worldY)
-{
-    if (tilemap)
-    {
-        return tilemap->WorldToScreen(worldX, worldY);
-    }
-    
-    // 타일맵이 없는 경우 기본 변환
-    POINT screenPos;
-    int tileSize = (int)(TILE_SIZE * zoom);
-    
-    screenPos.x = (worldX - position.x) * tileSize + WINSIZE_X / 2;
-    screenPos.y = (worldY - position.y) * tileSize + WINSIZE_Y / 2;
-    
-    return screenPos;
-}
-
-POINT Camera::WorldToScreen(POINT worldPos)
-{
-    return WorldToScreen(worldPos.x, worldPos.y);
-}
-
-POINT Camera::ScreenToWorld(int screenX, int screenY)
-{
-    if (tilemap)
-    {
-        return tilemap->ScreenToWorld(screenX, screenY);
-    }
-    
-    // 타일맵이 없는 경우 기본 변환
-    POINT worldPos;
-    int tileSize = (int)(TILE_SIZE * zoom);
-    
-    worldPos.x = (screenX - WINSIZE_X / 2) / tileSize + position.x;
-    worldPos.y = (screenY - WINSIZE_Y / 2) / tileSize + position.y;
-    
-    return worldPos;
+    // 줌 레벨 조정
+    SetZoom(zoom + deltaZoom);
 }
 
 POINT Camera::ScreenToWorld(POINT screenPos)
 {
-    return ScreenToWorld(screenPos.x, screenPos.y);
+    // 화면 좌표를 월드 좌표로 변환
+    POINT worldPos;
+    
+    // 화면 중앙
+    int centerX = screenWidth / 2;
+    int centerY = screenHeight / 2;
+    
+    // 화면 중앙 기준 오프셋
+    int offsetX = screenPos.x - centerX;
+    int offsetY = screenPos.y - centerY;
+    
+    // 줌 레벨 고려하여 월드 좌표 계산
+    worldPos.x = position.x + offsetX / zoom;
+    worldPos.y = position.y + offsetY / zoom;
+    
+    return worldPos;
 }
 
-void Camera::SetMoveSpeed(float speed)
+POINT Camera::WorldToScreen(POINT worldPos)
 {
-    moveSpeed = max(0.1f, speed);
-}
-
-void Camera::SetZoomSpeed(float speed)
-{
-    zoomSpeed = max(0.01f, speed);
-}
-
-// 마우스 휠 입력으로 줌 처리
-void Camera::HandleMouseWheel(int zDelta)
-{
-    // zDelta가 양수면 휠을 위로 굴린 것(줌 인), 음수면 아래로 굴린 것(줌 아웃)
-    float zoomChange = (zDelta > 0) ? zoomSpeed : -zoomSpeed;
-    ChangeZoom(zoomChange);
+    // 월드 좌표를 화면 좌표로 변환
+    POINT screenPos;
+    
+    // 화면 중앙
+    int centerX = screenWidth / 2;
+    int centerY = screenHeight / 2;
+    
+    // 카메라 위치 기준 오프셋
+    int offsetX = (int)((worldPos.x - position.x) * zoom);
+    int offsetY = (int)((worldPos.y - position.y) * zoom);
+    
+    // 화면 좌표 계산
+    screenPos.x = centerX + offsetX;
+    screenPos.y = centerY + offsetY;
+    
+    return screenPos;
 }

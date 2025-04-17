@@ -126,7 +126,7 @@ LRESULT MainGame::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 			int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 			
 			// 카메라 시스템에 마우스 휠 입력 전달
-			Camera::GetInstance()->HandleMouseWheel(zDelta);
+			// Camera::GetInstance()->HandleMouseWheel(zDelta);
 		}
 		break;
 	case WM_DESTROY:

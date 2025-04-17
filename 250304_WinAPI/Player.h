@@ -18,6 +18,7 @@ public:
 	virtual void Render(HDC hdc);
 	void Move() override;
 	void TakeTurn();
+	void HandleInput();
 
 	void SetState(ActState state);
 	void SetDir(Dir dir);
@@ -35,4 +36,5 @@ private:
 	Dir dir = DIR_DOWN;
 	ActState state = ActState::IDLE;
 	bool keyPressed = false;
+	const int ASTAR_TILE_SIZE = 30;
 };

@@ -36,7 +36,7 @@ HRESULT DungeonScene::Init()
     }
     
     // 카메라 초기화
-    Camera::GetInstance()->Init();
+    // Camera::GetInstance()->Init();
     
     // 턴 매니저 초기화
     // TurnManager::GetInstance()->Init();
@@ -45,8 +45,8 @@ HRESULT DungeonScene::Init()
     // player->SetTilemap(tilemap);
     
     // 카메라에 타일맵과 플레이어 참조 설정
-    Camera::GetInstance()->SetTilemap(tilemap);
-    Camera::GetInstance()->SetPlayer(player);
+    // Camera::GetInstance()->SetTilemap(tilemap);
+    // Camera::GetInstance()->SetPlayer(player);
     
     // 턴 매니저에 타일맵 참조 설정
     // TurnManager::GetInstance()->SetTilemap(tilemap);
@@ -80,7 +80,7 @@ void DungeonScene::Release()
     }
     
     // 카메라 해제
-    Camera::GetInstance()->Release();
+    // Camera::GetInstance()->Release();
     
     // 턴 매니저 해제
     // TurnManager::GetInstance()->Release();
@@ -97,7 +97,7 @@ void DungeonScene::Update()
     if (player) player->Update();
     
     // 카메라 업데이트
-    Camera::GetInstance()->Update();
+    // Camera::GetInstance()->Update();
     
     // 턴 매니저 업데이트 (에너지 기반 턴 처리)
     // TurnManager::GetInstance()->Update();
@@ -105,7 +105,7 @@ void DungeonScene::Update()
     // 카메라 플레이어 추적 토글 (F 키)
     if (KeyManager::GetInstance()->IsOnceKeyDown('F'))
     {
-        Camera::GetInstance()->SetFollowPlayer(!Camera::GetInstance()->IsFollowingPlayer());
+        // Camera::GetInstance()->SetFollowPlayer(!Camera::GetInstance()->IsFollowingPlayer());
     }
     
     // 디버그 정보 표시 토글 (Tab 키)
@@ -135,10 +135,10 @@ void DungeonScene::Render(HDC hdc)
         // TurnManager::GetInstance()->GetTurnCount());
     TextOut(hdc, 20, 20, szText, wcslen(szText));
     
-    wsprintf(szText, TEXT("Camera: %.1f"), //, Follow: %s"), 
-        Camera::GetInstance()->GetZoom());
+    // wsprintf(szText, TEXT("Camera: %.1f"), //, Follow: %s"), 
+        // Camera::GetInstance()->GetZoom());
         // Camera::GetInstance()->IsFollowingPlayer() ? L"ON" : L"OFF");
-    TextOut(hdc, 20, 40, szText, wcslen(szText));
+    // TextOut(hdc, 20, 40, szText, wcslen(szText));
     
     if (player)
     {

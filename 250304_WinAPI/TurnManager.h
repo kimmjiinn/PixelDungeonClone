@@ -1,15 +1,34 @@
 ﻿#pragma once
 #include "Singleton.h"
+#include <vector>
+
+#include "Enemy.h"
+
 class Actor;
+
 class TurnManager : public Singleton<TurnManager>
 {
 public:
 	TurnManager();
 	~TurnManager();
 
-	void ProcessTurn();
-	void SetActor(Actor* actor) { this->actor = actor; }
+	// 액터 관리 함수
+	void AddActor(Actor* actor);
+	void RemoveActor(Actor* actor);
+	void ClearActors();
 	
+	// 턴 처리 함수
+	void ProcessTurn();
+	
+	// 턴 시스템 활성화/비활성화
+	void SetActive(bool active) { isActive = active; }
+	bool IsActive() const { return isActive; }
+	
+	// 턴 시작/종료
+	void StartTurn() { isActive = true; }
+	void EndTurn() { isActive = false; }
+
 private:
-	Actor* actor;
+	std::vector<Actor*> actors;
+	bool isActive = false;
 };
