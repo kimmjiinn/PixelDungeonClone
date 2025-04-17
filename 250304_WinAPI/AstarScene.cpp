@@ -1,5 +1,7 @@
 ﻿#include "AstarScene.h"
 #include "Player.h"
+#include "Enemy.h"
+#include "config.h"
 
 HRESULT AstarTile::Init()
 {
@@ -26,6 +28,10 @@ HRESULT AstarTile::Init(int idX, int idY)
 	type = AstarTileType::None;
 
 	parentTile = nullptr;
+
+	//enemy
+	enemyParentTile = nullptr;
+
 
 	color = RGB(100, 100, 100);
 	hBrush = CreateSolidBrush(color);
@@ -78,6 +84,17 @@ HRESULT AstarScene::Init()
 	player = new Player({startTile->center.x, startTile->center.y});
 	player->Init();
 
+	// enemy
+	enemyStartTile = &(map[18][5]);
+	enemyStartTile->SetColor(RGB(125, 0, 0));
+	enemyStartTile->SetType(AstarTileType::Start);
+
+	enemyCurrTile = enemyStartTile;
+
+	enemy = new Enemy({ enemyStartTile->center.x, enemyStartTile->center.y });
+	enemy->Init();
+	//isTarget = true;
+	//enemyMoving = true;
 	return S_OK;
 }
 
@@ -121,10 +138,13 @@ void AstarScene::Release()
 	//}
 	//closeList.clear();
 	SAFE_DELETE(player);
+
+	SAFE_DELETE(enemy);
 }
 
 void AstarScene::Update()
 {
+	float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
 	//디버깅용 색 초기화
 	for (int i = 0; i < ASTAR_TILE_COUNT; i++)
 	{
@@ -189,6 +209,7 @@ void AstarScene::Update()
 	}
 
 	Reset();
+
 	FindPath();
 	PrintPath();
 
@@ -204,7 +225,6 @@ void AstarScene::Update()
 			return;
 		}
 
-		float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
 		currTime += deltaTime;
 		if (currTime >= 0.5f)
 		{
@@ -228,6 +248,60 @@ void AstarScene::Update()
 	if (KeyManager::GetInstance()->IsStayKeyDown(VK_RETURN))
 	{
 		SceneManager::GetInstance()->ChangeScene("전투씬_1", "로딩_1");
+
+	// enemy
+
+	if(enemy)
+	{
+		if (!isTarget)
+		{
+			LookAround();
+		}
+		if (target)
+		{
+			UpdateTargetPos(currTile);
+		}
+		enemyOpenList.clear();
+		enemyCloseList.clear();
+		enemyPath.clear();
+		enemyPathIdx = 0;
+		enemyStartTile = enemyCurrTile;
+
+		EnemyFindPath();
+
+		EnemyPrintPath();
+
+		// 위치 업데이트. 플레이어 위치와 같으면 위치 업데이트 안함.
+		if(enemyCurrTile != currTile)
+		{
+			enemy->SetPos(enemyCurrTile->center);
+			enemy->Update();
+		}
+		else
+		{
+			enemyCurrTile->SetColor(RGB(200, 200, 20));
+			enemy->Update();
+		}
+
+		if (enemyMoving)
+		{
+			if (enemyPathIdx >= enemyPath.size())
+			{
+				return;
+			}
+
+			enemyCurrTime += deltaTime;
+			if (enemyCurrTime >= 0.5f)
+			{
+				//currTile->SetColor(RGB(255, 0, 255));
+
+				enemyCurrTile = &map[enemyPath[enemyPathIdx].y / ASTAR_TILE_SIZE][enemyPath[enemyPathIdx].x / ASTAR_TILE_SIZE];
+				//currTile->SetColor(RGB(255, 0, 0));
+
+				enemyCurrTime = 0;
+				enemyPathIdx++;
+			}
+		}
 	}
 }
 
@@ -242,6 +316,9 @@ void AstarScene::Render(HDC hdc)
 	}
 	if (player)
 		player->Render(hdc);
+
+	if (enemy)
+		enemy->Render(hdc);
 }
 
 FPOINT front[] =
@@ -405,6 +482,7 @@ bool AstarScene::CanGo(AstarTile* nextTile)
 	return true;
 }
 
+
 void AstarScene::Reset()
 {
 	startTile->SetType(AstarTileType::None);
@@ -417,4 +495,154 @@ void AstarScene::Reset()
 	path.clear();
 
 	pathIdx = 0;
+
+void AstarScene::EnemyFindPath()
+{
+	if (!enemyDestTile)
+		return;
+	if (enemyCurrTile)
+	{
+		if (enemyCurrTile == enemyDestTile)
+		{
+			enemyCurrTile = enemyStartTile;
+			return;
+		}
+		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
+		AddOpenList(enemyCurrTile);
+
+		// 후보들 중 F값이 가장 작은 타일을 다음 currTile 선정
+		if (enemyOpenList.empty())
+			return;
+		sort(enemyOpenList.begin(), enemyOpenList.end(), [](AstarTile* t1, AstarTile* t2) {
+			return t1->enemyTotalCost > t2->enemyTotalCost;
+			});
+		AstarTile* nextTile = enemyOpenList.back();
+		enemyOpenList.pop_back();
+
+		enemyCurrTile = nextTile;
+		// 반복
+		EnemyFindPath();
+
+	}
+}
+
+void AstarScene::EnemyPrintPath()
+{
+	if (!enemyDestTile)
+		return;
+	AstarTile* eCurr = enemyDestTile;
+	enemyPath.clear();
+	enemyPath.push_back({ eCurr->center.x, eCurr->center.y });
+
+	while (eCurr != nullptr && eCurr != enemyStartTile)
+	{
+
+		if (!eCurr->enemyParentTile)
+			return;
+		//curr->SetColor(RGB(0, 0, 0));
+		eCurr = eCurr->enemyParentTile;
+		enemyPath.push_back({ eCurr->center.x, eCurr->center.y });
+	}
+	enemyPath.pop_back();
+	reverse(enemyPath.begin(), enemyPath.end());
+}
+
+void AstarScene::AddEnemyOpenList(AstarTile* currTile)
+{
+	for (int i = 0; i < 8; ++i)
+	{
+		int nextX = enemyCurrTile->idX + front[i].x;
+		int nextY = enemyCurrTile->idY + front[i].y;
+
+		if (nextX < 0 || nextX >= ASTAR_TILE_COUNT)
+			continue;
+		if (nextY < 0 || nextY >= ASTAR_TILE_COUNT)
+			continue;
+
+		AstarTile* nextTile = &map[nextY][nextX];
+
+		if (!EnemyCanGo(nextTile))
+			continue;
+
+		auto it1 = find(enemyCloseList.begin(), enemyCloseList.end(), nextTile);
+		if (it1 != enemyCloseList.end())
+			continue;
+
+		int g = enemyCurrTile->enemyCostFromStart + cost[i];
+		int h = 10 * sqrt((enemyDestTile->idX - nextTile->idX) * (enemyDestTile->idX - nextTile->idX)
+			+ (enemyDestTile->idY - nextTile->idY) * (enemyDestTile->idY - nextTile->idY));
+
+		auto it2 = find(enemyOpenList.begin(), enemyOpenList.end(), nextTile);
+		if (it2 != enemyOpenList.end())
+		{
+			if ((*it2)->enemyCostFromStart > g)
+			{
+				(*it2)->enemyCostFromStart = g;
+				(*it2)->enemyTotalCost = (*it2)->enemyCostFromStart + h;
+				(*it2)->SetEnemyParent(currTile);
+			}
+		}
+		else
+		{
+			nextTile->enemyCostFromStart = g;
+			nextTile->enemyCostToGoal = h;
+			nextTile->enemyTotalCost = g + h;
+			nextTile->SetEnemyParent(currTile);
+			//nextTile->SetColor(RGB(128, 128, 128));
+			enemyOpenList.push_back(nextTile);
+		}
+		enemyCloseList.push_back(currTile);
+	}
+}
+
+void AstarScene::SetTarget(Player *player)
+{
+	target = player;
+	enemyMoving = true;
+	//enemyDestTile = &(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);
+	enemyDestTile = currTile;
+}
+
+void AstarScene::LookAround()
+{
+	static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
+	static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
+
+	for (int i = 0; i < 8; i++)
+	{
+		int nx = enemyCurrTile->idX + dx[i];
+		int ny = enemyCurrTile->idY + dy[i];
+
+		if (nx < 0 || nx >= ASTAR_TILE_COUNT ||
+			ny < 0 || ny >= ASTAR_TILE_COUNT)
+			continue;
+
+		if ((map[ny][nx].center.x == player->GetPos().x) && (map[ny][nx].center.y == player->GetPos().y))
+		{
+			SetTarget(player);
+			break;
+		}
+	}
+}
+
+void AstarScene::UpdateTargetPos(AstarTile* currTile)
+{
+	enemyDestTile = currTile;/*&(map[player->GetPos().y / ASTAR_TILE_SIZE][player->GetPos().x / ASTAR_TILE_SIZE]);*/
+	//destTile->SetColor(RGB(0, 0, 255));
+	//enemyDestTile->SetType(AstarTileType::End);
+}
+
+bool AstarScene::EnemyCanGo(AstarTile* nextTile)
+{
+	//타일타입이 벽이면 false
+	if (nextTile->GetType() == AstarTileType::Wall)
+		return false;
+	//주변 벽이면 대각이동 X
+	int dx = nextTile->idX - enemyCurrTile->idX;
+	int dy = nextTile->idY - enemyCurrTile->idY;
+
+	if (map[enemyCurrTile->idY + dy][enemyCurrTile->idX].type == AstarTileType::Wall
+		&& map[enemyCurrTile->idY][enemyCurrTile->idX + dx].type == AstarTileType::Wall)
+		return false;
+	return true;
 }

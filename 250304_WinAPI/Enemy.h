@@ -3,21 +3,18 @@
 #include "config.h"
 
 class Image;
-class CombatComponent;
-class Player : public Actor
+class AI;
+class Enemy: public Actor
 {
 public:
 	using Super = Actor;
-
-	Player(POINT pos);
-	virtual ~Player();
+	Enemy(POINT pos);
+	virtual ~Enemy();
 
 	virtual HRESULT Init() override;
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc);
-	void Move() override;
-	void TakeTurn();
 
 	void SetState(ActState state);
 	void SetDir(Dir dir);
@@ -25,15 +22,15 @@ public:
 
 	void UpdateAnimation();
 
-	//
-	POINT GetPos() { return pos; }
 private:
 	Image* imageIdle[4] = {};
 	Image* imageMove[4] = {};
 	Image* imageAttack[4] = {};
 
+	int speed = 1;
 	Dir dir = DIR_DOWN;
 	ActState state = ActState::IDLE;
 	bool keyPressed = false;
-};
 
+	AI* ai;
+};

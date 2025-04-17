@@ -48,11 +48,20 @@ public:
 	AstarTile* GetParent() { return this->parentTile; }
 	int GetIdX() { return idX; }
 	int GetIdY() { return idY; }
+
+	// enemy
+	void SetEnemyParent(AstarTile* tile) { this->enemyParentTile = tile; }
+
 	friend class AstarScene;
 public:
 	float costFromStart;	// g : 시작점부터 현재 노드까지의 비용
 	float costToGoal;		// h : 현재 노드부터 목적지까지의 예상비용
 	float totalCost;		// f : g + h
+
+	//
+	float enemyCostFromStart;
+	float enemyCostToGoal;
+	float enemyTotalCost;
 
 private:
 	int idX, idY;
@@ -62,6 +71,8 @@ private:
 
 	AstarTile* parentTile;	// g가 갱신될 때마다 이전 노드를 갱신
 
+	AstarTile* enemyParentTile;
+
 	COLORREF color;
 	HBRUSH hBrush;
 	HBRUSH hOldBrush;
@@ -69,6 +80,7 @@ private:
 };
 
 class Player;
+class Enemy;
 class AstarScene : public GameObject
 {
 public:
@@ -85,10 +97,26 @@ public:
 	bool CanGo(AstarTile* nextTile);
 	void Reset();
 
+	// enemy
+	void EnemyFindPath();
+	void EnemyPrintPath();
+	void AddEnemyOpenList(AstarTile* currTile);
+	void SetTarget(Player* player);
+	void LookAround();
+	void UpdateTargetPos(AstarTile* currTile);
+	bool EnemyCanGo(AstarTile* nextTile);
+
 	float currTime = 1.f;
 	vector<POINT> path;
 	int pathIdx = 0;
 	bool moving = false;
+
+	// enemy
+	float enemyCurrTime = 1.f;
+	vector<POINT> enemyPath;
+	int enemyPathIdx = 0;
+	bool enemyMoving = false;
+
 public:
 	// 이차원 배열 맵을 구성
 	AstarTile map[ASTAR_TILE_COUNT][ASTAR_TILE_COUNT];
@@ -101,7 +129,19 @@ public:
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 
+	// enemy
+	bool isTarget = false;
+	Player* target = nullptr;
+	AstarTile* enemyStartTile;	
+	AstarTile* enemyDestTile;	
+
+	AstarTile* enemyCurrTile;	
+
+	vector<AstarTile*> enemyOpenList;
+	vector<AstarTile*> enemyCloseList;
+
 private:
 	Player* player;
+	Enemy* enemy;
 };
 
