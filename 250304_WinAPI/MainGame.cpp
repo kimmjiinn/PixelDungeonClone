@@ -9,7 +9,9 @@
 #include "D2DImage.h"
 #include "D2DImageManager.h"
 
+// test
 #include "Map.h"
+#include "Player.h"
 
 HRESULT MainGame::Init()
 {
@@ -40,6 +42,8 @@ HRESULT MainGame::Init()
 	// 테스트맵
 	testMap = new Map;
 	testMap->Init();
+	player = new Player;
+	ImageManager::GetInstance()->AddImage();
 
 	return S_OK;
 }
@@ -60,7 +64,12 @@ void MainGame::Release()
 	// 	test = nullptr;
 	// }
 
-	// testMap
+	// test
+	if (player)
+	{
+		delete player;
+		player = nullptr;
+	}
 	if (testMap)
 	{
 		testMap->Release();
