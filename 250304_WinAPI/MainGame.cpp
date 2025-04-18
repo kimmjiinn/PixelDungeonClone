@@ -9,6 +9,8 @@
 #include "D2DImage.h"
 #include "D2DImageManager.h"
 
+#include "Map.h"
+
 HRESULT MainGame::Init()
 {
 	ImageManager::GetInstance()->Init();
@@ -35,6 +37,10 @@ HRESULT MainGame::Init()
 	// test = new D2DImage();
 	// test->LoadFromFile(L"Image/banners.png", 2, 4);
 	
+	// 테스트맵
+	testMap = new Map;
+	testMap->Init();
+
 	return S_OK;
 }
 
@@ -53,7 +59,15 @@ void MainGame::Release()
 	// 	delete test;
 	// 	test = nullptr;
 	// }
-	
+
+	// testMap
+	if (testMap)
+	{
+		testMap->Release();
+		delete testMap;
+		testMap = nullptr;
+	}
+
 	ReleaseDC(g_hWnd, hdc);
 
 	SceneManager::GetInstance()->Release();
@@ -64,6 +78,10 @@ void MainGame::Release()
 void MainGame::Update()
 {
 	SceneManager::GetInstance()->Update();
+
+	// testMap
+	testMap->Update();
+
 	InvalidateRect(g_hWnd, NULL, false);
 }
 
@@ -78,8 +96,12 @@ void MainGame::Render()
 	 HDC hBackBufferDC = backBuffer->GetMemDC();
 	
 	 SceneManager::GetInstance()->Render(hBackBufferDC);
-	
+
+	 // testMap
+	 testMap->Render(hBackBufferDC);
+
 	 TimerManager::GetInstance()->Render(hBackBufferDC);
+
 	 wsprintf(szText, TEXT("Mouse X : %d, Y : %d"), g_ptMouse.x, g_ptMouse.y);
 	 TextOut(hBackBufferDC, 20, 60, szText, wcslen(szText));
 	

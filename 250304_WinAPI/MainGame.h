@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "GameObject.h"
 
 class Timer;
@@ -6,6 +6,8 @@ class Image;
 class EnemyManager;
 class TilemapTool;
 class D2DImage;
+class Map;
+
 class MainGame : public GameObject
 {
 private:
@@ -20,6 +22,8 @@ private:
 	Timer* timer;
 	D2DImage* test;
 	
+	Map* testMap;
+
 public:
 	virtual HRESULT Init() override;
 	virtual void Release() override;
