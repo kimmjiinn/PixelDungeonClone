@@ -31,6 +31,7 @@ void Player::Move(int dx, int dy, Map map)
 
 void Player::Act(Game)
 {
+	//EndTurn();
 }
 
 bool Player::NeedInput()

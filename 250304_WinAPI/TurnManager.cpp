@@ -4,7 +4,10 @@
 
 void TurnManager::AddActor(Entity* actor)
 {
-    turnQueue.push_back(actor); // 첫번째는 항상 플레이어
+    if(actor->isActive)
+    {
+        turnQueue.push_back(actor); // 첫번째는 항상 플레이어
+    }
 }
 
 void TurnManager::ProcessTurns(Game game)
@@ -19,5 +22,8 @@ void TurnManager::EndTurn()
 
 Entity* TurnManager::GetCurrentActor()
 {
-    return nullptr;
+    if(turnQueue.empty())
+        return nullptr;
+
+    return turnQueue[currentActorIndex];
 }

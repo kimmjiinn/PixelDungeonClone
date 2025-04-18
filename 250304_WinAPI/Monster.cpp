@@ -12,6 +12,7 @@ void Monster::Move(int dx, int dy, Map map)
 
 void Monster::Act(Game game)
 {
+    //EndTurn();
 }
 
 bool Monster::NeedInput()
@@ -19,6 +20,7 @@ bool Monster::NeedInput()
     return false;
 }
 
+// 렌더용
 void Monster::Update()
 {
 }
