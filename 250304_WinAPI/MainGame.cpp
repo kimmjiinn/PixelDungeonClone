@@ -43,7 +43,6 @@ HRESULT MainGame::Init()
 	testMap = new Map;
 	testMap->Init();
 	player = new Player;
-	ImageManager::GetInstance()->AddImage();
 
 	return S_OK;
 }
@@ -90,6 +89,7 @@ void MainGame::Update()
 
 	// testMap
 	testMap->Update();
+	player->Update();
 
 	InvalidateRect(g_hWnd, NULL, false);
 }
@@ -108,6 +108,7 @@ void MainGame::Render()
 
 	 // testMap
 	 testMap->Render(hBackBufferDC);
+	 player->Render(hBackBufferDC);
 
 	 TimerManager::GetInstance()->Render(hBackBufferDC);
 
@@ -127,10 +128,18 @@ LRESULT MainGame::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 		switch (wParam)
 		{
 		case 'a': case 'A':
-			SceneManager::GetInstance()->ChangeScene("전투씬_1");
+			//SceneManager::GetInstance()->ChangeScene("전투씬_1");
+			player->Move(-30, 0, *testMap);
 			break;
 		case 'd': case 'D':
-			SceneManager::GetInstance()->ChangeScene("타일맵툴");
+			//SceneManager::GetInstance()->ChangeScene("타일맵툴");
+			player->Move(30, 0, *testMap);
+			break;
+		case 'w': case 'W':
+			player->Move(0, 30, *testMap);
+			break;
+		case 's': case 'S':
+			player->Move(0, -30, *testMap);
 			break;
 		}
 		break;
