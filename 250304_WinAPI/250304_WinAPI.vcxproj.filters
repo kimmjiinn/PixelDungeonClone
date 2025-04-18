@@ -31,6 +31,9 @@
     <Filter Include="2D Framework\UI\Button">
       <UniqueIdentifier>{57de70b7-daba-4081-817d-3bfdbbe06bf9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="2D Framework\Entity">
+      <UniqueIdentifier>{67d65fa0-1731-4d21-8738-8a3e407cd3e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -74,6 +77,24 @@
     </ClCompile>
     <ClCompile Include="LoadingScene.cpp">
       <Filter>MainGame\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="D2DImage.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="D2DImageManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>2D Framework\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="Monster.cpp">
+      <Filter>2D Framework\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>2D Framework\Entity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +145,24 @@
     </ClInclude>
     <ClInclude Include="LoadingScene.h">
       <Filter>MainGame\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DImage.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DImageManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>2D Framework\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Monster.h">
+      <Filter>2D Framework\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>2D Framework\Entity</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
