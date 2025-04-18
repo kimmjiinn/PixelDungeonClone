@@ -49,9 +49,6 @@ private:
 	TileMap* tileMap;       // 타일맵 관리
 	Camera* camera;         // 카메라 관리
 	PathFinder* pathFinder; // 경로 탐색
-    //
-	PathFinder* enemyPathFinder; // 적의 경로 탐색
-
 
 	// 게임 오브젝트
 	Player* player;         // 플레이어
