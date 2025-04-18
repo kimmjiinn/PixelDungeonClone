@@ -44,7 +44,7 @@ void AI::Update()
     
 
 
-    if (CanSee())   // 시야에 보임
+    if (CanSee())   // 시야에 보임-enemy에서 받아온 시야로 플레어가 있는지 판단.
     {
         Act(true, false);
     }
