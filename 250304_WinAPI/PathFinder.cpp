@@ -46,6 +46,9 @@ std::vector<POINT> PathFinder::FindPath(AstarTile* startTile, AstarTile* destTil
     // A* 알고리즘 시작
     bool pathFound = false;
     
+    // 주변 타일 탐색
+    AddOpenList(currTile);
+
     while (!openList.empty())
     {
         // 열린 목록에서 F값이 가장 작은 타일 선택
@@ -66,8 +69,8 @@ std::vector<POINT> PathFinder::FindPath(AstarTile* startTile, AstarTile* destTil
         // 현재 타일을 닫힌 목록에 추가
         closeList.push_back(currTile);
         
-        // 주변 타일 탐색
-        AddOpenList(currTile);
+        //// 주변 타일 탐색
+        //AddOpenList(currTile);
     }
     
     // 경로가 발견되었으면 경로 구성
@@ -96,7 +99,7 @@ std::vector<POINT> PathFinder::FindPath(AstarTile* startTile, AstarTile* destTil
         // 경로 방향 뒤집기 (시작 -> 목적지)
         std::reverse(path.begin(), path.end());
     }
-    
+    int a = 0;
     return path;
 }
 
