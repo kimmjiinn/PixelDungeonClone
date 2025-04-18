@@ -1,7 +1,7 @@
 ﻿#include "Player.h"
 #include "Map.h"
 #include "Image.h"
-#include "MainGame.h"
+#include "Game.h"
 
 Player::Player()
 {
@@ -29,7 +29,7 @@ void Player::Move(int dx, int dy, Map map)
 	}
 }
 
-void Player::Act(MainGame)
+void Player::Act(Game)
 {
 }
 
