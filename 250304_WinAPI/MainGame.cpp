@@ -104,7 +104,7 @@ LRESULT MainGame::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 			SceneManager::GetInstance()->ChangeScene("타일맵툴");
 			break;
 		case 'p': case 'P':
-			SceneManager::GetInstance()->ChangeScene("�ȼ�����");
+			SceneManager::GetInstance()->ChangeScene("A*알고리즘");
 			break;
 		}
 		break;

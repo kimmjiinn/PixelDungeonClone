@@ -27,7 +27,7 @@ public:
     int GetIdX() { return idX; }
     int GetIdY() { return idY; }
     POINT GetCenter() { return center; }
-    
+
     // 타일 이미지 설정
     void SetTileImage(Image* image) { this->tileImage = image; }
     void SetFrameX(int frameX) { this->frameX = frameX; }

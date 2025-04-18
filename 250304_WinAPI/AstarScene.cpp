@@ -51,7 +51,7 @@ void AstarScene::Update()
     // 타일맵 업데이트
     tileMap->Update();
     
-    // 입력 처리
+    // 입력 처리-플레이어, 적
     ProcessInput();
     
     // 턴 기반 시스템 초기화 (첫 프레임에만)
@@ -97,10 +97,7 @@ void AstarScene::Update()
         // 카메라 위치 업데이트 (플레이어 중심)
         camera->SetPosition(player->GetPos());
     }
-
-    // enemy 추가하기
  
-    
     // 카메라 업데이트
     camera->Update();
 
@@ -203,7 +200,7 @@ void AstarScene::ProcessInput()
         AstarTile* clickTile = tileMap->GetTile(tileX, tileY);
         if (clickTile && clickTile->GetType() != AstarTile::TileType::Wall)
         {
-            // 목적지 설정
+            // 목적지 설정->맵의 목적지? 중심 맞추기용?
             tileMap->SetDestTile(tileX, tileY);
             
             // 현재 플레이어 위치 타일 찾기
@@ -270,22 +267,22 @@ void AstarScene::ProcessMovementTurn()
         // 적의 다음 위치 계산
         Act();
         
-        // 플레이어 위치 타일 찾기
-        POINT playerPos = player->GetPos();
-        AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
-        
-        // 적 위치 타일 찾기
-        POINT enemyPos = enemy->GetPos();
-        AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
-        
-        // 경로 찾기
-        std::vector<POINT> enemyPath = pathFinder->FindPath(enemyTile, playerTile);
-        
-        // 적 이동 (첫 번째 경로 지점으로)
-        if (!enemyPath.empty())
-        {
-            enemy->SetPos(enemyPath[0]);
-        }
+        //// 플레이어 위치 타일 찾기
+        //POINT playerPos = player->GetPos();
+        //AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
+        //
+        //// 적 위치 타일 찾기
+        //POINT enemyPos = enemy->GetPos();
+        //AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
+        //
+        //// 경로 찾기
+        //std::vector<POINT> enemyPath = pathFinder->FindPath(enemyTile, playerTile);
+        //
+        //// 적 이동 (첫 번째 경로 지점으로)
+        //if (!enemyPath.empty())
+        //{
+        //    enemy->SetPos(enemyPath[0]);
+        //}
     }
 }
 
@@ -338,8 +335,6 @@ void AstarScene::Act()
 	{
 		Wandering();	// 없으면 그냥 돌아다님
 	}
-
-    std::vector<POINT> enemyPath = pathFinder->FindPath(enemyTile, playerTile);
 }
 
 bool AstarScene::CanSee()
@@ -387,7 +382,7 @@ bool AstarScene::CanAttack()
     AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
 
     if (!enemyTile)
-        return;
+        return false;
 
     // 주변 8방향 탐색
     for (int i = 0; i < 8; i++)
@@ -448,7 +443,8 @@ void AstarScene::Wandering()
     AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
 
 	AstarTile* moveTile = RandomDestination();		// bool로 한다면, index값 참조로 넣어주고 true 반환할 때만 사용?
-	if (enemyTile == moveTile)
+	
+    if (enemyTile == moveTile)
 	{
 		// Sleep()
 		enemyMoving = false;
@@ -458,6 +454,7 @@ void AstarScene::Wandering()
 		// Move()
 		enemyMoving = true;
         enemy->SetPos(moveTile->GetCenter());
+        int a = 0;
 	}
 }
 
@@ -513,7 +510,7 @@ AstarTile* AstarScene::RandomDestination()
     int nx = enemyTile->GetIdX() + dx[index];
     int ny = enemyTile->GetIdY() + dy[index];
 
-    if (tileMap->GetTile(nx, ny))
+    if (!tileMap->GetTile(nx, ny))
         return enemyTile;
 
     return tileMap->GetTile(nx, ny);

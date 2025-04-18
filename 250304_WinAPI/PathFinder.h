@@ -16,6 +16,9 @@ public:
     // A* 알고리즘 관련 함수
     std::vector<POINT> FindPath(AstarTile* startTile, AstarTile* destTile);
     bool CanGo(AstarTile* currTile, AstarTile* nextTile);
+
+    // enemy 관련 함수
+
     
 private:
     void AddOpenList(AstarTile* currTile);

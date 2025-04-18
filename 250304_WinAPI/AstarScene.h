@@ -37,6 +37,7 @@ public:
 	bool CanSee();
 	void Hunting();
 	bool CanAttack();
+	void Follow();
 	void Wandering();
 	void SetEnemyFov();		// 우선은 Astar에서 설정
 	AstarTile* RandomDestination();
