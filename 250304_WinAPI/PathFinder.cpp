@@ -70,7 +70,7 @@ std::vector<POINT> PathFinder::FindPath(AstarTile* startTile, AstarTile* destTil
         closeList.push_back(currTile);
         
         //// 주변 타일 탐색
-        //AddOpenList(currTile);
+        AddOpenList(currTile);
     }
     
     // 경로가 발견되었으면 경로 구성
