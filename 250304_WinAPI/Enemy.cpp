@@ -59,6 +59,7 @@ void Enemy::Update()
         }
     }
 
+
     // 턴 기반 시스템이 활성화된 경우에만 AI 업데이트
     // GetCurrentActor() 의존성 제거
     if (TurnManager::GetInstance()->IsActive())

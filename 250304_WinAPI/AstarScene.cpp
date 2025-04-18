@@ -9,6 +9,8 @@
 
 HRESULT AstarScene::Init()
 {
+	srand(unsigned(time(0)));
+
     // 컴포넌트 클래스 생성 및 초기화
     tileMap = new TileMap();
     tileMap->Init();
@@ -82,6 +84,8 @@ void AstarScene::Update()
             // 타이머 리셋 및 다음 경로 인덱스로 이동
             moveTimer = 0;
             pathIdx++;
+            Act();	// enemy 도착지 세팅, enemyMoving 세팅
+
         }
     }
     
@@ -93,26 +97,31 @@ void AstarScene::Update()
         // 카메라 위치 업데이트 (플레이어 중심)
         camera->SetPosition(player->GetPos());
     }
-    
-    // 적 업데이트
-    if (enemy)
-    {
-        // 플레이어 감지 로직
-        if (!isTarget)
-        {
-            LookAround();
-        }
-        
-        if (isTarget)
-        {
-            UpdateTargetPos();
-        }
-        
-        enemy->Update();
-    }
+
+    // enemy 추가하기
+ 
     
     // 카메라 업데이트
     camera->Update();
+
+	////디버깅용 색 초기화
+	//for (int i = 0; i < ASTAR_TILE_COUNT; i++)
+	//{
+	//	for (int j = 0; j < ASTAR_TILE_COUNT; j++)
+	//	{
+	//		map[i][j].costFromStart = 0;
+	//		map[i][j].costToGoal = 0;
+	//		map[i][j].totalCost = 0;
+	//		if (map[i][j].type == AstarTileType::None)
+	//			map[i][j].SetColor(RGB(100, 100, 100));
+	//		else if (map[i][j].type == AstarTileType::End)
+	//			map[i][j].SetColor(RGB(0, 0, 255));
+	//		else if (map[i][j].type == AstarTileType::Start)
+	//			map[i][j].SetColor(RGB(255, 0, 0));
+	//		else if (map[i][j].type == AstarTileType::Wall)
+	//			map[i][j].SetColor(RGB(100, 150, 100));
+	//	}
+	//}
 }
 
 void AstarScene::Render(HDC hdc)
@@ -256,10 +265,10 @@ void AstarScene::ProcessMovementTurn()
     // 플레이어가 한 타일 이동할 때마다 턴이 소모되고 적이 이동함
     
     // 적 AI 업데이트 (플레이어 이동 후)
-    if (enemy && isTarget)
+    if (enemy)
     {
         // 적의 다음 위치 계산
-        UpdateTargetPos();
+        Act();
         
         // 플레이어 위치 타일 찾기
         POINT playerPos = player->GetPos();
@@ -316,62 +325,113 @@ POINT AstarScene::GetMouseDragDelta()
     return delta;
 }
 
-void AstarScene::LookAround()
+// AI
+void AstarScene::Act()
+{
+	SetEnemyFov();	// 현재 위치 기준으로 시야 설정(24칸)
+
+	if (CanSee())	// 시야 안에 플레이어가 있으면
+	{
+		Hunting();
+	}
+	else
+	{
+		Wandering();	// 없으면 그냥 돌아다님
+	}
+
+    std::vector<POINT> enemyPath = pathFinder->FindPath(enemyTile, playerTile);
+}
+
+bool AstarScene::CanSee()
+{
+    // 시야 업데이트
+    SetEnemyFov();
+
+    // 플레이어 위치 타일 찾기
+    POINT playerPos = player->GetPos();
+    AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
+
+    auto it = find(enemyFovList.begin(), enemyFovList.end(), playerTile);		// 플레이어 타일 발견
+    if (it == enemyFovList.end())
+        return false;
+    else
+        return true;
+}
+
+void AstarScene::Hunting()
+{
+	if (CanAttack())
+	{
+		// Attack()
+		static int color = 0;	 // 맞는 거 표시(맞을수록 값이 커짐)
+		isAttack = true;
+		enemyMoving = false;
+	}
+	else
+	{
+		// Follow();
+        Follow();
+		enemyMoving = true;
+		isAttack = false;
+	}
+}
+
+bool AstarScene::CanAttack()
 {
     // 적이 플레이어를 감지하는 로직
     static const int dx[8] = { -1, 1, -1, 1, -1, 1, 0, 0 };
     static const int dy[8] = { -1, 1, 1, -1, 0, 0, -1, 1 };
-    
+
     // 적 위치 타일 찾기
     POINT enemyPos = enemy->GetPos();
     AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
-    
+
     if (!enemyTile)
         return;
-        
+
     // 주변 8방향 탐색
     for (int i = 0; i < 8; i++)
     {
         int nx = enemyTile->GetIdX() + dx[i];
         int ny = enemyTile->GetIdY() + dy[i];
-        
+
         AstarTile* nearTile = tileMap->GetTile(nx, ny);
         if (!nearTile)
             continue;
-            
+
         // 플레이어 위치 타일 찾기
         POINT playerPos = player->GetPos();
         AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
-        
+
         if (playerTile && nearTile == playerTile)
         {
-            isTarget = true;
-            break;
+            return true;
         }
     }
+    return false;
 }
 
-void AstarScene::UpdateTargetPos()
+void AstarScene::Follow()
 {
     // 적의 목표 위치 업데이트 (플레이어 위치)
-    if (!isTarget || !player)
+    if (!player)
         return;
-        
+
     // 플레이어 위치 타일 찾기
     POINT playerPos = player->GetPos();
     AstarTile* playerTile = tileMap->GetTileFromPos(playerPos.x, playerPos.y);
-    
+
     if (playerTile)
     {
         // 적 위치 타일 찾기
         POINT enemyPos = enemy->GetPos();
         AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
-        
+
         if (enemyTile)
         {
             // 경로 찾기
             std::vector<POINT> enemyPath = pathFinder->FindPath(enemyTile, playerTile);
-            
+
             // 적 이동 (첫 번째 경로 지점으로)
             if (!enemyPath.empty())
             {
@@ -380,3 +440,83 @@ void AstarScene::UpdateTargetPos()
         }
     }
 }
+
+void AstarScene::Wandering()
+{
+    // 적 위치 타일 찾기
+    POINT enemyPos = enemy->GetPos();
+    AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
+
+	AstarTile* moveTile = RandomDestination();		// bool로 한다면, index값 참조로 넣어주고 true 반환할 때만 사용?
+	if (enemyTile == moveTile)
+	{
+		// Sleep()
+		enemyMoving = false;
+	}
+	else
+	{
+		// Move()
+		enemyMoving = true;
+        enemy->SetPos(moveTile->GetCenter());
+	}
+}
+
+void AstarScene::SetEnemyFov()
+{
+    // 적의 시야를 가져오는 함수
+	if (!enemyFovList.empty())
+	{
+		enemyFovList.clear();
+	}
+
+	int dx[5] = { -2, -1, 0, 1, 2 };
+	int dy[5] = { -2, -1, 0, 1, 2 };
+
+    // 적 위치 타일 찾기
+    POINT enemyPos = enemy->GetPos();
+    AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
+    
+    if (!enemyTile)
+        return;
+
+    // 주변 24방향 탐색
+    for (int i = 0; i < 5; i++)
+    {
+        for(int j = 0; j < 5; j++)
+        {
+            int nx = enemyTile->GetIdX() + dx[j];
+            int ny = enemyTile->GetIdY() + dy[i];
+
+
+            AstarTile* nearTile = tileMap->GetTile(nx, ny);
+            if (!nearTile)
+                continue;
+            if (nearTile->GetType() == AstarTile::TileType::Wall)
+                continue;
+            enemyFovList.push_back(nearTile);
+        }
+    }
+}
+
+AstarTile* AstarScene::RandomDestination()
+{
+    // 적이 이동할 랜덤한 위치를 받아오는 함수
+    static const int dx[9] = { -1, 1, -1, 1, -1, 1, 0, 0, 0 };
+    static const int dy[9] = { -1, 1, 1, -1, 0, 0, -1, 1, 0 };
+
+    int index = rand() % 9;
+
+    // 적 위치 타일 찾기
+    POINT enemyPos = enemy->GetPos();
+    AstarTile* enemyTile = tileMap->GetTileFromPos(enemyPos.x, enemyPos.y);
+
+    int nx = enemyTile->GetIdX() + dx[index];
+    int ny = enemyTile->GetIdY() + dy[index];
+
+    if (tileMap->GetTile(nx, ny))
+        return enemyTile;
+
+    return tileMap->GetTile(nx, ny);
+}
+
+
