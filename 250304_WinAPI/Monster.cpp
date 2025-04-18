@@ -1,6 +1,6 @@
 ﻿#include "Monster.h"
 #include "Map.h"
-#include "MainGame.h"
+#include "Game.h"
 
 Monster::Monster()
 {
@@ -10,7 +10,7 @@ void Monster::Move(int dx, int dy, Map map)
 {
 }
 
-void Monster::Act(MainGame)
+void Monster::Act(Game game)
 {
 }
 

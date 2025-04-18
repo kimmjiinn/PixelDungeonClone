@@ -96,6 +96,12 @@
     <ClCompile Include="Entity.cpp">
       <Filter>2D Framework\Entity</Filter>
     </ClCompile>
+    <ClCompile Include="TurnManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h">
@@ -163,6 +169,12 @@
     </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>2D Framework\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="TurnManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

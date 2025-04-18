@@ -9,7 +9,7 @@ public:
 	virtual ~Monster() {};
 
 	void Move(int dx, int dy, Map map);
-	virtual void Act(MainGame) override;
+	virtual void Act(Game game) override;
 	virtual bool NeedInput() override;
 
 	// 렌더에 필요한 것들
