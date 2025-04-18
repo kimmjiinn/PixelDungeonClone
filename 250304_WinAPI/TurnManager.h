@@ -12,6 +12,6 @@ public:
 	Entity* GetCurrentActor();
 private:
 	vector<Entity*> turnQueue;
-	int currentActorIndex;
+	int currentActorIndex = 0;	// 첫번째는 항상 플레이어
 };
 

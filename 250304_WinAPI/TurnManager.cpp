@@ -14,10 +14,20 @@ void TurnManager::ProcessTurns(Game game)
 {
     if (turnQueue.empty())
         return;
+    if (turnQueue[currentActorIndex]->NeedInput())
+    {
+        while (currentActorIndex < turnQueue.size())
+        {
+            Entity* currActor;
+            currActor = GetCurrentActor();
+            currActor->Act(game);
+        }
+    }
 }
 
 void TurnManager::EndTurn()
 {
+    currentActorIndex++;
 }
 
 Entity* TurnManager::GetCurrentActor()
