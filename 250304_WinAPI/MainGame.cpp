@@ -136,10 +136,10 @@ LRESULT MainGame::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 			player->Move(30, 0, *testMap);
 			break;
 		case 'w': case 'W':
-			player->Move(0, 30, *testMap);
+			player->Move(0, -30, *testMap);
 			break;
 		case 's': case 'S':
-			player->Move(0, -30, *testMap);
+			player->Move(0, 30, *testMap);
 			break;
 		}
 		break;

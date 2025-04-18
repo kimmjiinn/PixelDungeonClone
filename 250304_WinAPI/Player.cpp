@@ -10,6 +10,7 @@ Player::Player()
 
 	maxFrame = 57;
 	currFrame = 0;
+	pos = { 15, 15 };
 }
 
 void Player::Move(int dx, int dy, Map map)
@@ -18,7 +19,9 @@ void Player::Move(int dx, int dy, Map map)
 	int newX = pos.x + dx;
 	int newY = pos.y + dy;
 
-	if (map.GetTileType(newX, newY) != Tile::TileType::Wall)
+	if (newX <= 0 || newX >= map.GetWidth() || newY <= 0 || newY >= map.GetHeight())
+		return;
+	if (map.GetTileType(newX/30, newY/30) != Tile::TileType::Wall)
 	{
 		pos.x = newX;
 		pos.y = newY;
