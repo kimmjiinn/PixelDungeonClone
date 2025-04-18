@@ -1,6 +1,7 @@
 ﻿#include "Player.h"
 #include "Map.h"
 #include "Image.h"
+#include "MainGame.h"
 
 Player::Player()
 {
@@ -26,6 +27,15 @@ void Player::Move(int dx, int dy, Map map)
 		pos.x = newX;
 		pos.y = newY;
 	}
+}
+
+void Player::Act(MainGame)
+{
+}
+
+bool Player::NeedInput()
+{
+	return true;
 }
 
 // 렌더에 필요한 것

@@ -10,7 +10,8 @@ public:
 	virtual ~Player() {};
 
 	void Move(int dx, int dy, Map map);
-
+	virtual void Act(MainGame) override;
+	virtual bool NeedInput() override;
 
 // 렌더에 필요한 것들
 public:
