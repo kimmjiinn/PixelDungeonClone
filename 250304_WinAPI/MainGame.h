@@ -10,6 +10,7 @@ class D2DImage;
 // test
 class Map;
 class Player;
+class Monster;
 
 class MainGame : public GameObject
 {
@@ -28,6 +29,7 @@ private:
 	// test
 	Map* testMap;
 	Player* player;
+	Monster* monster;
 
 public:
 	virtual HRESULT Init() override;

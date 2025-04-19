@@ -12,6 +12,7 @@
 // test
 #include "Map.h"
 #include "Player.h"
+#include "Monster.h"
 
 HRESULT MainGame::Init()
 {
@@ -43,6 +44,7 @@ HRESULT MainGame::Init()
 	testMap = new Map;
 	testMap->Init();
 	player = new Player;
+	monster = new Monster;
 
 	return S_OK;
 }
@@ -64,6 +66,11 @@ void MainGame::Release()
 	// }
 
 	// test
+	if (monster)
+	{
+		delete monster;
+		monster = nullptr;
+	}
 	if (player)
 	{
 		delete player;
@@ -75,6 +82,7 @@ void MainGame::Release()
 		delete testMap;
 		testMap = nullptr;
 	}
+
 
 	ReleaseDC(g_hWnd, hdc);
 
@@ -90,6 +98,7 @@ void MainGame::Update()
 	// testMap
 	testMap->Update();
 	player->Update();
+	monster->Update();
 
 	InvalidateRect(g_hWnd, NULL, false);
 }
@@ -109,7 +118,7 @@ void MainGame::Render()
 	 // testMap
 	 testMap->Render(hBackBufferDC);
 	 player->Render(hBackBufferDC);
-
+	 monster->Render(hBackBufferDC);
 	 TimerManager::GetInstance()->Render(hBackBufferDC);
 
 	 wsprintf(szText, TEXT("Mouse X : %d, Y : %d"), g_ptMouse.x, g_ptMouse.y);

@@ -8,6 +8,7 @@ Monster::Monster()
     image = ImageManager::GetInstance()->AddImage("rat_Idle", L"Image/rat_Idle.bmp", 16 * 4, 16, 4, 1, true, RGB(255, 0, 255));
     maxFrame = 4;
     currFrame = 0;
+    pos = { 15, 15 };
 }
 
 void Monster::Move(int dx, int dy, Map map)
