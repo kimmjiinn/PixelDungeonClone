@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Entity.h"
 
-class Map;
+class BattleScene;
 class Image;
 class Player: public Entity
 {
@@ -9,7 +9,7 @@ public:
 	Player();
 	virtual ~Player() {};
 
-	void Move(int dx, int dy, Map map);
+	void Move(int dx, int dy, BattleScene map);
 	virtual void Act(Game game) override;
 	virtual bool NeedInput() override;
 

@@ -1,18 +1,22 @@
 ﻿#pragma once
 #include "config.h"
 
-class Map;
-class Player;
-class TurnManager;
 class Entity;
+class Player;
+class BattleScene;	// map 역할
+class TurnManager;
+
 class Game
 {
 public:
+	Game();
+	~Game();
 	void Update();
+	void Render(HDC hdc);
 	void AddActor(Entity* actor);
-	void HandleInput();
+	void HandleInput(WPARAM wParam);
 private:
-	Map* map;
+	BattleScene* map;
 	Player* player;
 	TurnManager* turnManager;
 	vector<Entity*> actors;

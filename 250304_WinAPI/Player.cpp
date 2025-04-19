@@ -1,5 +1,5 @@
 ﻿#include "Player.h"
-#include "Map.h"
+#include "BattleScene.h"
 #include "Image.h"
 #include "Game.h"
 
@@ -14,7 +14,7 @@ Player::Player()
 	pos = { 15, 15 };
 }
 
-void Player::Move(int dx, int dy, Map map)
+void Player::Move(int dx, int dy, BattleScene map)
 {
 	// 키보드 입력 받은 값을 설정
 	int newX = pos.x + dx;

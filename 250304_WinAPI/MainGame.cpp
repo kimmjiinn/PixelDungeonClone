@@ -9,11 +9,6 @@
 #include "D2DImage.h"
 #include "D2DImageManager.h"
 
-// test
-#include "Map.h"
-#include "Player.h"
-#include "Monster.h"
-
 HRESULT MainGame::Init()
 {
 	ImageManager::GetInstance()->Init();
@@ -40,11 +35,6 @@ HRESULT MainGame::Init()
 	// test = new D2DImage();
 	// test->LoadFromFile(L"Image/banners.png", 2, 4);
 	
-	// 테스트맵
-	testMap = new Map;
-	testMap->Init();
-	player = new Player;
-	monster = new Monster;
 
 	return S_OK;
 }
@@ -65,24 +55,6 @@ void MainGame::Release()
 	// 	test = nullptr;
 	// }
 
-	// test
-	if (monster)
-	{
-		delete monster;
-		monster = nullptr;
-	}
-	if (player)
-	{
-		delete player;
-		player = nullptr;
-	}
-	if (testMap)
-	{
-		testMap->Release();
-		delete testMap;
-		testMap = nullptr;
-	}
-
 
 	ReleaseDC(g_hWnd, hdc);
 
@@ -94,11 +66,6 @@ void MainGame::Release()
 void MainGame::Update()
 {
 	SceneManager::GetInstance()->Update();
-
-	// testMap
-	testMap->Update();
-	player->Update();
-	monster->Update();
 
 	InvalidateRect(g_hWnd, NULL, false);
 }
@@ -115,10 +82,6 @@ void MainGame::Render()
 	
 	 SceneManager::GetInstance()->Render(hBackBufferDC);
 
-	 // testMap
-	 testMap->Render(hBackBufferDC);
-	 player->Render(hBackBufferDC);
-	 monster->Render(hBackBufferDC);
 	 TimerManager::GetInstance()->Render(hBackBufferDC);
 
 	 wsprintf(szText, TEXT("Mouse X : %d, Y : %d"), g_ptMouse.x, g_ptMouse.y);
@@ -137,18 +100,10 @@ LRESULT MainGame::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 		switch (wParam)
 		{
 		case 'a': case 'A':
-			//SceneManager::GetInstance()->ChangeScene("전투씬_1");
-			player->Move(-30, 0, *testMap);
+			SceneManager::GetInstance()->ChangeScene("전투씬_1");
 			break;
 		case 'd': case 'D':
-			//SceneManager::GetInstance()->ChangeScene("타일맵툴");
-			player->Move(30, 0, *testMap);
-			break;
-		case 'w': case 'W':
-			player->Move(0, -30, *testMap);
-			break;
-		case 's': case 'S':
-			player->Move(0, 30, *testMap);
+			SceneManager::GetInstance()->ChangeScene("타일맵툴");
 			break;
 		}
 		break;
