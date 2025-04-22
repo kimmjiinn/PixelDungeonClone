@@ -13,7 +13,7 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 
 	if (endSlope > startSlope)
 		return;
-	
+
 	float nextStartSlope = startSlope;
 	bool isBlock = false;
 
@@ -33,6 +33,12 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 			if (idX < 0 || idX >= ASTAR_TILE_COUNT || idY < 0 || idY >= ASTAR_TILE_COUNT)
 				continue;
 	
+			AstarTile* tile;
+			tile = &map[idY][idX];
+
+			if (!tile)
+				continue;
+
 			// 타일이 시야 내에 있는지 확인
 			float centerSlope = (float)dx / (float)dy;
 			// 접점 기울기-dy에 -+0.5 left, right 바꾸면 다르게 나옴 
@@ -44,9 +50,12 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				continue;
 			}
 			
-			if (leftSlope <= endSlope)
+			if (leftSlope < endSlope)
 			{
-				break;
+				if(centerSlope < endSlope)
+				{
+					break;
+				}
 			}
 
 			if (centerSlope > startSlope)
@@ -59,20 +68,17 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				break;
 			}
 
-			// 타일의 leftSlope은 dy+1 타일의 rightSlope과 같다.
-			if (endSlope == rightSlope)
-			{
-				//endSlope = leftSlope;
-				endSlope = centerSlope;
-				/*break;*/
-			}
+			// 타일의 leftSlope은 dy+1 타일의 rightSlope과 같다. 
+			//if (endSlope == rightSlope)
+			//{
+			//	//endSlope = leftSlope;
+			//	//if (tile->GetType() == AstarTileType::Wall)
+			//	{
+			//		endSlope = centerSlope;
+			//	/*	break;*/
+			//	}
+			//}
 
-			AstarTile* tile ;
-			tile = &map[idY][idX];
-
-			if (!tile)
-				continue;
-	
 			tile->isVisible = true;
 
 			// 타일이 벽이라면
@@ -82,7 +88,6 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				{
 					if (dx == 0)
 					{
-						Calculate(map, tileIdX, tileIdY, dy + 1, exploreStartSlope, exploreEndSlope, direction);
 						return;
 					}
 					nextStartSlope = rightSlope;
@@ -90,12 +95,10 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				}
 				else
 				{
-					Calculate(map, tileIdX, tileIdY, dy + 1, exploreStartSlope, exploreEndSlope, direction);
-					//Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
 					// dx == 0이면 rightSlope이 마이너스. start가 end보다 작기 때문에 종료된다.
 					if (dx == 0)
 					{
-						nextStartSlope = 0.0f;
+						nextStartSlope = 0.0f/*leftSlope*/;
 					}
 					else
 					{
@@ -109,8 +112,15 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 			{
 				if (tile->GetType() == AstarTileType::Wall)
 				{	
-					exploreStartSlope = nextStartSlope;
-					exploreEndSlope = leftSlope;
+					//exploreStartSlope = nextStartSlope;
+					//exploreEndSlope = leftSlope;
+					
+					// 빗면일때
+					if(dx == ceil((float)dy * nextStartSlope))
+					{
+						leftSlope = ((float)dx + 0.5f) / ((float)dy - 0.5f);
+					}
+
 					Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
 
 					if (dx == 0)
