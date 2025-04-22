@@ -44,7 +44,7 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				continue;
 			}
 			
-			if (leftSlope < endSlope)
+			if (leftSlope <= endSlope)
 			{
 				break;
 			}
@@ -59,12 +59,12 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				break;
 			}
 
-			// 타일의 leftSlope은 dy+1 타일의 rightSlope과 같다.-시야처리하면 안됨 몰겟다
+			// 타일의 leftSlope은 dy+1 타일의 rightSlope과 같다.
 			if (endSlope == rightSlope)
 			{
 				//endSlope = leftSlope;
 				endSlope = centerSlope;
-				break;
+				/*break;*/
 			}
 
 			AstarTile* tile ;
@@ -82,6 +82,7 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				{
 					if (dx == 0)
 					{
+						Calculate(map, tileIdX, tileIdY, dy + 1, exploreStartSlope, exploreEndSlope, direction);
 						return;
 					}
 					nextStartSlope = rightSlope;
@@ -90,6 +91,7 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				else
 				{
 					Calculate(map, tileIdX, tileIdY, dy + 1, exploreStartSlope, exploreEndSlope, direction);
+					//Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
 					// dx == 0이면 rightSlope이 마이너스. start가 end보다 작기 때문에 종료된다.
 					if (dx == 0)
 					{
@@ -109,7 +111,7 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				{	
 					exploreStartSlope = nextStartSlope;
 					exploreEndSlope = leftSlope;
-					//Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
+					Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
 
 					if (dx == 0)
 					{
