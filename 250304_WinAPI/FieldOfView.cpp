@@ -17,6 +17,10 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 	float nextStartSlope = startSlope;
 	bool isBlock = false;
 
+	// 탐색용 기울기
+	float exploreStartSlope;
+	float exploreEndSlope;
+
 	// dy 맵 크기를 벗어나면 나올 수 없는 범위의 좌표가 나옴->왼쪽부터 차례대로...
 	for (int dy = checkRow; dy < ASTAR_TILE_COUNT; dy++) // 탐색 단위
 	{
@@ -85,6 +89,7 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				}
 				else
 				{
+					Calculate(map, tileIdX, tileIdY, dy + 1, exploreStartSlope, exploreEndSlope, direction);
 					// dx == 0이면 rightSlope이 마이너스. start가 end보다 작기 때문에 종료된다.
 					if (dx == 0)
 					{
@@ -102,7 +107,9 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 			{
 				if (tile->GetType() == AstarTileType::Wall)
 				{	
-					Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
+					exploreStartSlope = nextStartSlope;
+					exploreEndSlope = leftSlope;
+					//Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
 
 					if (dx == 0)
 					{
