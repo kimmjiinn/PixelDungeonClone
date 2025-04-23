@@ -1,10 +1,14 @@
 ﻿#pragma once
 #include <windows.h>
 #include <d2d1.h>
+#include <unordered_map>
 #include <wincodec.h>
 #include "config.h"
+#include "D2DTypes.h"
+
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "windowscodecs.lib")
+
 
 class D2DImage {
 private:
@@ -20,6 +24,8 @@ private:
     int frameHeight = 0;
     int currFrameX = 0;
     int currFrameY = 0;
+
+    // unordered_map<std::string, D2DAnimationClip> animationClips;
     
 public:
 #pragma region D2D_LifeCycle
@@ -59,17 +65,33 @@ public:
         bool flipX = false, bool flipY = false,
         float alpha = 1.0f);
     void RenderPercent(FPOINT pos,float spercent, float epercent, float alpha);
+    void RenderPercent(FPOINT pos, float spercent, float epercent,
+        float scaleX, float scaleY, float angle = 0.0f,
+        bool flipX = false, bool flipY = false,
+        float alpha = 1.0f);
     void InitBrushes();
     void ReleaseBrushes();
     void DrawLine(FPOINT point1, FPOINT point2, int color, float lineThickness);
     void DrawRect(FPOINT leftUp,FPOINT rightDown, int color, float lineThickness);
     void DrawCircle(FPOINT center, float radius, int color, float lineThickness);
-    
+    void Middle_RenderRaw(
+        ID2D1HwndRenderTarget* rt, const D2D1_RECT_F& destRect, const D2D1_RECT_F& srcRect,
+        float scaleX, float scaleY, float angle = 0.0f,
+        bool flipX = false, bool flipY = false,
+        float alpha = 1.0f );
+    void RenderRaw(
+        ID2D1HwndRenderTarget* rt, const D2D1_RECT_F& destRect, const D2D1_RECT_F& srcRect,
+        float scaleX, float scaleY, float angle = 0.0f,
+        bool flipX = false, bool flipY = false,
+        float alpha = 1.0f );
+
+    D2D1_RECT_F GetFullSourceRect() const;
+
     void Release();
-    inline int GetMaxFrameX() { return maxFrameX; }
-    inline int GetMaxFrameY() { return maxFrameY; }
-    inline int GetMaxFrame() { return maxFrameX * maxFrameY; }
-    inline int GetWidth() { return bitmap->GetSize().width; }
-    inline int GetHeight() { return bitmap->GetSize().height; }
+    inline int GetMaxFrameX() const { return maxFrameX; }
+    inline int GetMaxFrameY() const { return maxFrameY; }
+    inline int GetMaxFrame() const { return maxFrameX * maxFrameY; }
+    inline int GetWidth() const { return bitmap->GetSize().width; }
+    inline int GetHeight() const { return bitmap->GetSize().height; }
     static void ReleaseLast();
 };

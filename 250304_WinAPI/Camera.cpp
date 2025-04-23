@@ -1,9 +1,9 @@
 ﻿#include "Camera.h"
 
-void Camera::Init()
+void Camera::Init(const FPOINT& playerPos)
 {
-	nowZoomScale = 0;
-	centerP = { 1620, 1080 };
+	nowZoomScale = 3;
+	centerP = { (long)playerPos.x, (long)playerPos.y };
 
 	screen = { centerP.x - screenW[nowZoomScale] / 2,
 			   centerP.y - screenH[nowZoomScale] / 2,
@@ -63,6 +63,22 @@ void Camera::ZoomOut()
 		nowZoomScale = 0;
 	}
 }
+
+void Camera::UpdateCenter(const FPOINT& playerPos)
+{
+	centerP.x = (long)playerPos.x;
+	centerP.y = (long)playerPos.y;
+
+	screen = { centerP.x - screenW[nowZoomScale] / 2,
+			   centerP.y - screenH[nowZoomScale] / 2,
+			   centerP.x + screenW[nowZoomScale] / 2,
+			   centerP.y + screenH[nowZoomScale] / 2 };
+
+	offSetX = centerP.x - screenW[nowZoomScale] / 2;
+	offSetY = centerP.y - screenH[nowZoomScale] / 2;
+
+}
+
 
 int Camera::ConvertToRendererX(const int& worldNumX)
 {

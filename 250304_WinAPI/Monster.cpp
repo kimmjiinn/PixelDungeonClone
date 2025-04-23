@@ -89,9 +89,7 @@ void Monster::Move(Level* level)
 {
     // 이동 순서 체크용
     // Sleep(100);
-
-    auto index = level->GetMapIndex(targetPos.x, targetPos.y);
-    int a = 0;
+    
     auto map = level->GetMap(targetPos.x, targetPos.y);
     
     if ((map && !map->CanGo()) || level->GetActorAt(targetPos))
@@ -102,26 +100,35 @@ void Monster::Move(Level* level)
     }
      if (!level->GetMap(targetPos.x, targetPos.x)->CanGo()) return;
 
-    FPOINT delta = targetPos - position;
+    if (map->visible)
+    {
+        FPOINT delta = targetPos - position;
 
-    float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
-    delta.Normalize();
+        float deltaTime = TimerManager::GetInstance()->GetDeltaTime();
+        delta.Normalize();
 
-    position.x += speed * deltaTime * delta.x;
-    position.y += speed * deltaTime * delta.y;
+        position.x += speed * deltaTime * delta.x;
+        position.y += speed * deltaTime * delta.y;
 
-    delta = targetPos - position;
+        delta = targetPos - position;
 
-    // 매직넘버로,,, -> 변수로 dir 저장해두고 쓰면 Dot Product
-    if (delta.Length() <= 10.f)
+        // 매직넘버로,,, -> 변수로 dir 저장해두고 쓰면 Dot Product
+        if (delta.Length() <= 10.f)
+        {
+            position = targetPos;
+            // 테스트용이라 도착지 정하는건 수정해야함
+            //isMoving = false;
+            //SetRandomTargetPos();
+            curState = EntityState::IDLE;
+        }
+    }
+    else
     {
         position = targetPos;
-        // 테스트용이라 도착지 정하는건 수정해야함
-        //isMoving = false;
-
         //SetRandomTargetPos();
         curState = EntityState::IDLE;
     }
+
 }
 
 //void Monster::SetRandomTargetPos()

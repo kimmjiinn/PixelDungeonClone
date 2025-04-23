@@ -86,4 +86,8 @@ public:
     void UseEnergy() { energy -= actionCost; }
 
     void Stop() { destPos = position; }
+
+    // TODO UI HP 관련임시
+    inline int GetHP() const { return hp; };
+    inline int GetMaxHP() const { return maxHp; };
 };

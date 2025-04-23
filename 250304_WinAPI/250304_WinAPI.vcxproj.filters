@@ -5,13 +5,6 @@
       <Filter>2D Framework\UI\Button</Filter>
     </ClCompile>
     <ClCompile Include="CombatSyetem.cpp" />
-    <ClCompile Include="D2DImage.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="D2DImageManager.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Dungeon.cpp" />
     <ClCompile Include="Entity.cpp">
       <Filter>MainGame\GamePlay\Entity</Filter>
     </ClCompile>
@@ -56,15 +49,6 @@
       <Filter>MainGame\GamePlay</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Image.cpp">
-      <Filter>2D Framework</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageManager.cpp">
-      <Filter>2D Framework</Filter>
-    </ClCompile>
-    <ClCompile Include="BattleScene.cpp">
-      <Filter>MainGame\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="Consumable.cpp">
       <Filter>Item</Filter>
@@ -76,17 +60,38 @@
       <Filter>Item</Filter>
     </ClCompile>
     <ClCompile Include="Inventory.cpp" />
-    <ClCompile Include="Game.cpp">
-      <Filter>MainGame\GamePlay</Filter>
-    </ClCompile>
-    <ClCompile Include="Map.cpp">
-      <Filter>MainGame\GamePlay</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>MainGame\GamePlay</Filter>
-    </ClCompile>
     <ClCompile Include="FieldOfView.cpp">
       <Filter>2D Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="DungeonGenerator.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="EnvironmentalEffectsManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegratedDungeonSystem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MonsterGenerator.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TileVariationManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="D2DImage.cpp">
+      <Filter>소스 파일\D2D</Filter>
+    </ClCompile>
+    <ClCompile Include="D2DImageManager.cpp">
+      <Filter>소스 파일\D2D</Filter>
+    </ClCompile>
+    <ClCompile Include="DWriteFactory.cpp">
+      <Filter>소스 파일\D2D</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Util\UIHelper.cpp">
+      <Filter>2D Framework\UI\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Util\UIResourceSubManager.cpp">
+      <Filter>2D Framework\UI\Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -98,12 +103,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="D2DImage.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="D2DImageManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Entity.h">
@@ -150,15 +149,6 @@
       <Filter>MainGame\GamePlay</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Image.h">
-      <Filter>2D Framework</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageManager.h">
-      <Filter>2D Framework</Filter>
-    </ClInclude>
-    <ClInclude Include="BattleScene.h">
-      <Filter>MainGame\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="PathFinder.h" />
     <ClInclude Include="Consumable.h">
       <Filter>Item</Filter>
@@ -170,20 +160,122 @@
       <Filter>Item</Filter>
     </ClInclude>
     <ClInclude Include="Inventory.h" />
-    <ClInclude Include="AstarScene.h">
-      <Filter>MainGame\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>MainGame\GamePlay</Filter>
-    </ClInclude>
-    <ClInclude Include="Map.h">
-      <Filter>MainGame\GamePlay</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>MainGame\GamePlay</Filter>
-    </ClInclude>
     <ClInclude Include="FieldOfView.h">
       <Filter>2D Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="DungeonGenerator.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="EnvironmentalEffectsManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegratedDungeonSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MonsterGenerator.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TileVariationManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DBrush.h">
+      <Filter>헤더 파일\D2D</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DImage.h">
+      <Filter>헤더 파일\D2D</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DImageManager.h">
+      <Filter>헤더 파일\D2D</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DTypes.h">
+      <Filter>헤더 파일\D2D</Filter>
+    </ClInclude>
+    <ClInclude Include="DWriteFactory.h">
+      <Filter>헤더 파일\D2D</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UIData.h">
+      <Filter>2D Framework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\VisualStyle.h">
+      <Filter>2D Framework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\UIComponent.h">
+      <Filter>2D Framework\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\UIContainer.h">
+      <Filter>2D Framework\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\UIContainerBase.h">
+      <Filter>2D Framework\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\UILayout.h">
+      <Filter>2D Framework\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Image\UI9PatchImage.h">
+      <Filter>2D Framework\UI\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Image\UIBaseImage.h">
+      <Filter>2D Framework\UI\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Image\UIImage.h">
+      <Filter>2D Framework\UI\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Bar\UIValueBar.h">
+      <Filter>2D Framework\UI\Bar</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Bar\ValueAnimator.h">
+      <Filter>2D Framework\UI\Bar</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Util\IUIInteractable.h">
+      <Filter>2D Framework\UI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Util\StyleUtil.h">
+      <Filter>2D Framework\UI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Util\UIHelper.h">
+      <Filter>2D Framework\UI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Util\UIResourceSubManager.h">
+      <Filter>2D Framework\UI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Util\UITextPool.h">
+      <Filter>2D Framework\UI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Panel\UIInventory.h">
+      <Filter>2D Framework\UI\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Panel\UIQuickSlotToolbar.h">
+      <Filter>2D Framework\UI\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Panel\UIStatusPanel.h">
+      <Filter>2D Framework\UI\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Panel\UIStatusTollbar.h">
+      <Filter>2D Framework\UI\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Panel\UITextLogPanel.h">
+      <Filter>2D Framework\UI\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Panel\UITopRightUI.h">
+      <Filter>2D Framework\UI\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Test\UITestEffectManager.h">
+      <Filter>2D Framework\UI\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Test\UITestHeader.h">
+      <Filter>2D Framework\UI\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Test\UITestView.h">
+      <Filter>2D Framework\UI\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Text\UIText.h">
+      <Filter>2D Framework\UI\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Text\UITextBox.h">
+      <Filter>2D Framework\UI\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Text\UITextEffect.h">
+      <Filter>2D Framework\UI\Text</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -224,6 +316,33 @@
     </Filter>
     <Filter Include="Inventory">
       <UniqueIdentifier>{67a1e6c4-150e-49bf-b8f9-2400a5453b75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\D2D">
+      <UniqueIdentifier>{adf4e2ee-8a96-482c-9fdd-d531b45a2f9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\D2D">
+      <UniqueIdentifier>{54f7db9c-90a1-4068-9add-f406b93d7340}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Framework\UI\Core">
+      <UniqueIdentifier>{62eb5a26-5eb0-419d-9522-67eabc380945}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Framework\UI\Text">
+      <UniqueIdentifier>{805a5b7a-abea-4503-bb76-592ef54d1bba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Framework\UI\Test">
+      <UniqueIdentifier>{f99e8140-d37e-4baf-afc4-23bb6c07fea6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Framework\UI\Image">
+      <UniqueIdentifier>{46042a83-d424-43df-88c9-9574fc1fe33a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Framework\UI\Bar">
+      <UniqueIdentifier>{d3de970c-9b35-45d3-b4fc-ef5592463bc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Framework\UI\Panel">
+      <UniqueIdentifier>{fbdc530a-a454-4b96-b5a1-5ac585f538f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Framework\UI\Util">
+      <UniqueIdentifier>{1d1d6fbf-100e-47bc-a3e8-b930cca41eb2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

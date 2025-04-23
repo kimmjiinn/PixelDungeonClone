@@ -34,13 +34,17 @@ private:
 
 public:
 
-	void Init();
+	void Init(const FPOINT& playerPos);
 	void Update();
 
 	void ZoomIn();
 	void ZoomOut();
 	inline float GetZoomScale() { return zoomScale[nowZoomScale]; }
 	inline float GetRevertedZoomScale() { return zoomScale[4 - nowZoomScale]; }
+
+	void UpdateCenter(const FPOINT& playerPos);
+
+	inline RECT GetScreen() { return screen; }
 
 	inline int GetOffSetX() { return offSetX; }
 	inline int GetOffSetY() { return offSetY; }

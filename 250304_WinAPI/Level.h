@@ -14,6 +14,7 @@ class Item;
 class Biome;
 class Image;
 class Camera;
+class UITestView;
 class Level
 {
 private:
@@ -87,6 +88,9 @@ private:
 		{0, -1, -1, 0},
 		{0, 1, -1, 0}
 	};
+
+	// UI Sample
+	UITestView* uiTestView;
 	
 public:
 	void Init();
@@ -99,7 +103,7 @@ public:
 	Map* GetMap(int x, int y) { return &map[(y - GRID_POS_OFFSET.y - TILE_SIZE / 2) / TILE_SIZE * TILE_X + (x - GRID_POS_OFFSET.x - TILE_SIZE / 2) / TILE_SIZE]; }
 	Entity* GetActorAt(FPOINT pos);
 
-	FPOINT GetPosByGridIndex(int idx, int idy) const { return {GRID_POS_OFFSET.x + (idx * 2 + 1) / 2.f * tempTileSize, GRID_POS_OFFSET.y + (idy * 2 + 1) / 2.f * tempTileSize}; }
+	FPOINT GetPosByGridIndex(int idx, int idy) const { return {GRID_POS_OFFSET.x + (idx * 2 + 1) / 2.f * TILE_SIZE, GRID_POS_OFFSET.y + (idy * 2 + 1) / 2.f * TILE_SIZE }; }
 	
 	void FileLoad();
 

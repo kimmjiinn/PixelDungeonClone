@@ -89,7 +89,7 @@ void MouseManager::Update()
             isDragging[i] = false;
 
             float dragDistance = GetDistance(dragStartP, dragEndP);
-            if (dragDistance <= 20.0f && dragElapsedTime <= 0.1f)
+            if (dragDistance <= 20.0f && dragElapsedTime <= 0.3f)
             {
                 //클릭으로 간주
                 clickedPUsed = false;
