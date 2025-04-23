@@ -92,8 +92,8 @@ HRESULT AstarScene::Init()
 	}
 
 	startTile = &(map[3][3]);
-	startTile->SetColor(RGB(255, 0, 0));
-	startTile->SetType(AstarTileType::Start);
+	//startTile->SetColor(RGB(255, 0, 0));
+	//startTile->SetType(AstarTileType::Start);
 
 	currTile = startTile;
 
@@ -142,6 +142,21 @@ void AstarScene::Update()
 		
 	}
 
+	if (KeyManager::GetInstance()->IsStayKeyDown(VK_LBUTTON))
+	{
+		// g_ptMouse로 인덱스를 계산
+		int x, y;
+		x = g_ptMouse.x / ASTAR_TILE_SIZE;
+		y = g_ptMouse.y / ASTAR_TILE_SIZE;
+
+		// map[y][x]
+		float left = (x-10 - 0.5f) / (y-10 + 0.5f);
+		float right = (x-10 + 0.5f) / (y-10 - 0.5f);
+
+		leftSlope = left * 1000;
+		rightSlope = right * 1000;
+	}
+
 	if (KeyManager::GetInstance()->IsOnceKeyDown(VK_BACK))
 	{
 		SetVisibleTile();
@@ -169,6 +184,10 @@ void AstarScene::Render(HDC hdc)
 	}
 
 	astarGame->Render(hdc);
+
+	 wsprintf(szText, TEXT("leftSlope : %d, rightSlope : %d"), leftSlope, rightSlope);
+	 TextOut(hdc, 20, 300, szText, wcslen(szText));
+
 }
 
 void AstarScene::FindPath()

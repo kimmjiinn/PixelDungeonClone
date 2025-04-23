@@ -10,6 +10,7 @@ enum class AstarTileType { Start, End, Wall, None };	// fov test용
 
 class AstarTile : public GameObject
 {
+
 public:
 	int idX, idY;
 	POINT center;
@@ -50,6 +51,8 @@ public:
 
 	friend class AstarScene;
 
+
+
 };
 
 // Fov -> 추후 레벨로 이동
@@ -85,7 +88,10 @@ class AstarScene : public GameObject
 		{0, -1, -1, 0},
 		{0, 1, -1, 0}
 	};
-
+	// slope 확인용
+	wchar_t szText[128];
+	int leftSlope;
+	int rightSlope;
 public:
 	virtual HRESULT Init();
 	virtual void Release();
