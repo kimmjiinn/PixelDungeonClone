@@ -17,8 +17,8 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 		float nextStart = startSlope;
 		bool blocked = false;
 		int dy = -depth;
-
-		for (int dx = -depth; dx <= 0; ++dx) {
+		int exploreStartSlope = startSlope;
+		for (int dx = /*-depth*/ ceil(-depth * nextStart); dx <= 0; ++dx) {
 			// 1) 슬로프 계산
 			float leftSlope = (dx - 0.5f) / (dy + 0.5f);
 			float rightSlope = (dx + 0.5f) / (dy - 0.5f);
@@ -40,11 +40,12 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 			}
 
 			// 4) 벽 발견 시 재귀 분기
-			if (!blocked && tile.GetType() == AstarTileType::Wall) {
+			if (/*!blocked &&*/ tile.GetType() == AstarTileType::Wall) {
 				blocked = true;
 				Calculate(map, tileIdX, tileIdY,
-					depth + 1, startSlope, leftSlope, direction);
+					depth + 1, exploreStartSlope, leftSlope, direction);
 				nextStart = rightSlope;
+				exploreStartSlope = (leftSlope >= 1.0f ? 0.99999f:leftSlope);
 			}
 			// 5) 그림자 끝 지점 복귀
 			else if (blocked && tile.GetType() != AstarTileType::Wall) {
