@@ -45,6 +45,17 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 			float leftSlope = ((float)dx + 0.5f) / ((float)dy + 0.5f);
 			float rightSlope = ((float)dx - 0.5f) / ((float)dy - 0.5f);
 
+			// 타일의 leftSlope은 dy+1 타일의 rightSlope과 같다. 
+			if (endSlope == rightSlope)
+			{
+				//endSlope = leftSlope;
+				//if (tile->GetType() == AstarTileType::Wall)
+				{
+					endSlope = centerSlope;
+						//break;
+				}
+			}
+
 			if (rightSlope > startSlope)
 			{
 				continue;
@@ -68,16 +79,8 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 				break;
 			}
 
-			// 타일의 leftSlope은 dy+1 타일의 rightSlope과 같다. 
-			//if (endSlope == rightSlope)
-			//{
-			//	//endSlope = leftSlope;
-			//	//if (tile->GetType() == AstarTileType::Wall)
-			//	{
-			//		endSlope = centerSlope;
-			//	/*	break;*/
-			//	}
-			//}
+
+
 
 			tile->isVisible = true;
 
@@ -86,11 +89,13 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 			{
 				if (tile->GetType() == AstarTileType::Wall)
 				{
+					nextStartSlope = rightSlope;
+
 					if (dx == 0)
 					{
 						return;
 					}
-					nextStartSlope = rightSlope;
+					
 					continue;
 				}
 				else
@@ -99,7 +104,7 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 					// dx == 0이면 rightSlope이 마이너스. start가 end보다 작기 때문에 종료된다.
 					if (dx == 0)
 					{
-						nextStartSlope = 0.0f/*leftSlope*/;
+						nextStartSlope = leftSlope;
 					}
 					else
 					{
@@ -122,8 +127,6 @@ void FieldOfView::Calculate(AstarTile(&map)[20][20], int tileIdX, int tileIdY, i
 					{
 						leftSlope = ((float)dx - 0.5f) / ((float)dy + 0.5f);
 					}
-
-
 
 					Calculate(map, tileIdX, tileIdY, dy + 1, nextStartSlope, leftSlope, direction);
 
