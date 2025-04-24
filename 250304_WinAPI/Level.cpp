@@ -633,8 +633,8 @@ void Level::SetVisibleTile()
     ResetVisibleTile();
     
     int index = GetMapIndex(player->GetPosition().x, player->GetPosition().y);
-    int pTileXIndex = index % TILE_Y;
-    int pTileYIndex = index / TILE_Y;
+    int pTileXIndex = index % TILE_X;
+    int pTileYIndex = index / TILE_X;
     map[index].visible = true;
 
     for (auto scanDirection : scanDirections)

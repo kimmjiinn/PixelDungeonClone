@@ -25,7 +25,7 @@ void FieldOfView::Calculate(Map(&map)[TILE_Y][TILE_X], int viewRange, int tileId
 		int dy = -depth;
 		int exploreStartSlope = startSlope;
 
-		for (int dx = -depth*startSlope; dx <= 0; ++dx) {
+		for (int dx = ceil(-depth * nextStart); dx <= 0; ++dx) {
 			// 1) 슬로프 계산
 			float leftSlope = (dx - 0.5f) / (dy + 0.5f);
 			float rightSlope = (dx + 0.5f) / (dy - 0.5f);
