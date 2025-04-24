@@ -371,7 +371,7 @@ void AstarScene::SetVisibleTile()
 	for(int i = 0; i< 8; i++)
 	{
 		fov->Calculate(reinterpret_cast<AstarTile(&)[20][20]>(map), 10, 10, 0, 
-			1.0f, 0.0f, scanDirections[0]);
+			1.0f, 0.0f, scanDirections[i]);
 		int a = 0;
 	}
 	map[10][10].SetColor(RGB(200, 200, 0));
