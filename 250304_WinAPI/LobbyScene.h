@@ -12,6 +12,7 @@ private:
 	D2DImage* title;
 	D2DImage* mainMapTXT;
 	D2DImage* toolMapTXT;
+	D2DImage* team2TXT;
 	D2DImage* fireball;
 
 	float elapsedTime;
